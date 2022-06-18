@@ -1,0 +1,42 @@
+%custom-hf
+  height: 8%
+  background-color: #003F54
+
+%ic-head
+  font-weight: 700
+  font-size: 21.6px
+  line-height: 32px
+
+body
+  background: url("~assets/background/squares.png"), linear-gradient(180deg, #EEFFFF 42.74%, #F7FFF8 93.06%)
+  font-family: url("~assets/fonts/Poppins.ttf")
+  background-position: center bottom
+  background-size: contain
+  background-repeat: repeat-x
+  box-shadow: 0px 4px 31px rgba(227, 227, 227, 0.25)
+
+.ic-footer
+  font-weight: 400
+  font-size: 10px
+  line-height: 15px
+
+.header, .footer
+  @extend %custom-hf
+  & > .q-toolbar
+    height: 100%
+
+.footer
+  border-top-left-radius: 50px
+  border-top-right-radius: 50px
+
+.ic-trophy
+  @extend %ic-head
+  color: #FFD164
+
+.ic-triangle
+  @extend %ic-head
+  color: #FFA100
+
+.ic-heart
+  @extend %ic-head
+  color: #FF4B4B
