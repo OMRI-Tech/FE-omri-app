@@ -11,6 +11,10 @@ const routes = [
     path: "/:catchAll(.*)*",
     component: () => import("pages/Error404.vue"),
   },
+  {
+    path: "/registrarse",
+    component: () => import("pages/Register.vue"),
+  },
 ];
 
 export default routes;
