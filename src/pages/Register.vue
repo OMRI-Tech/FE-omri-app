@@ -1,6 +1,8 @@
 <template>
   <div class="fullscreen">
     <div class="absolute-center back" style="min-width: 100%; min-height: 100%">
+      <img src="~assets/img/cloud-up.png" class="cloud-up" />
+      <img src="~assets/img/cloud-down.png" class="cloud-down" />
       <div
         class="fixed-center card"
         style="min-width: 90%; height: 62%; max-height: 490px"
@@ -12,17 +14,21 @@
             </p>
             <q-btn rounded flat class="button" style="max-height: 50px">
               <p class="text-button">Registrate con</p>
-              <img src="~assets/logos/facebook.png" style="height: 25px" />
+              <q-icon class="q-ml-sm" size="sm">
+                <img src="~assets/logos/facebook.png" style="height: 25px" />
+              </q-icon>
             </q-btn>
             <q-btn rounded flat class="button" style="max-height: 50px">
               <p class="text-button">Registrate con</p>
-              <img src="~assets/logos/google.png" style="height: 25px" />
+              <q-icon class="q-ml-sm" size="sm">
+                <img src="~assets/logos/google.png" style="height: 25px" />
+              </q-icon>
             </q-btn>
           </div>
           <p
             class="title-account"
             style="
-              margin-top: 3px;
+              margin-top: 1.5%;
               font-weight: 600;
               font-size: 17px;
               line-height: 21px;
@@ -31,7 +37,7 @@
             - OR -
           </p>
           <q-form
-            style="margin-left: 15%; margin-right: 15%"
+            style="margin-left: 19%; margin-right: 18%"
             align="center"
             @submit.prevent=""
           >
@@ -56,18 +62,25 @@
               label="Contraseña"
               color="teal"
             ></q-input>
-            <q-btn rounded color="teal" class="q-ma-md full-width" type="submit"
+            <q-btn
+              rounded
+              class="q-ma-md full-width button-submit text-button"
+              type="submit"
+              style="color: #ffffff"
               >Crear cuenta</q-btn
             >
           </q-form>
-          <p>
+          <p
+            class="title-account q-mt-xs"
+            style="font-size: 13px; font-weight: 300"
+          >
             ¿Ya tienes una cuenta?
-            <router-link to="/registrarse">Inicia sesión</router-link>
+            <h-ref to="/registrarse" style="font-weight: 600">
+              Inicia sesión
+            </h-ref>
           </p>
         </q-card>
       </div>
-      <img src="~assets/img/cloud-up.png" class="cloud-up" />
-      <img src="~assets/img/cloud-down.png" class="cloud-down" />
       <div style="position: absolute; top: 0%; height: 18%; width: 100%">
         <img
           src="~assets/img/bell.png"
@@ -77,9 +90,12 @@
       <div style="position: absolute; top: 87%; height: 15%; width: 100%">
         <img
           src="~assets/img/phone.png"
-          style="height: 60%; margin-left: 10%"
+          style="height: 55%; margin-left: 10%"
         />
-        <img src="~assets/img/card.png" style="height: 80%; margin-left: 30%" />
+        <img
+          src="~assets/img/card.png"
+          style="height: 70%; margin-left: 30%; margin-top: 10px"
+        />
       </div>
     </div>
   </div>
@@ -111,14 +127,14 @@ export default {
 }
 .cloud-up {
   position: absolute;
-  top: 5%;
+  top: 10%;
   left: 0.5%;
   width: 99%;
   height: 20%;
 }
 .cloud-down {
   position: absolute;
-  top: 77%;
+  bottom: 10%;
   left: 0.5%;
   width: 99%;
   height: 20%;
@@ -136,7 +152,7 @@ export default {
   background: rgba(255, 255, 255, 0.85);
   box-shadow: 0px 4px 12px rgba(194, 194, 194, 0.25);
   border-radius: 23.76px;
-  margin-top: 1%;
+  margin-top: 3%;
   width: 65%;
 }
 .text-button {
@@ -155,5 +171,10 @@ export default {
   font-weight: 600;
   font-size: 14px;
   line-height: 21px;
+}
+.button-submit {
+  background: #003f54;
+  box-shadow: 0px 4px 31px rgba(227, 227, 227, 0.25);
+  border-radius: 53px;
 }
 </style>
