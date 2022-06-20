@@ -6,9 +6,11 @@
   "author": "pronficilio",
   "private": true,
   "scripts": {
-    "lint": "eslint --ext .js,.vue ./",
-    "format": "prettier --write \"**/*.{js,vue,scss,html,md,json}\" --ignore-path .gitignore",
-    "test": "echo \"No test specified\" && exit 0"
+    "make:ssl": "mkcert omri-app.test omri-app.dev localhost 127.0.0.1 ::1",
+    "build:spa": "quasar b",
+    "dev:spa": "quasar d",
+    "build:ssr": "quasar b -m ssr",
+    "dev:ssr": "quasar d -m ssr"
   },
   "dependencies": {
     "@quasar/extras": "^1.0.0",
