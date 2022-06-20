@@ -1,7 +1,10 @@
 <template>
   <div class="fullscreen">
     <div class="absolute-center back" style="min-width: 100%; min-height: 100%">
-      <div class="fixed-center card" style="min-width: 90%; min-height: 62%">
+      <div
+        class="fixed-center card"
+        style="min-width: 90%; height: 62%; max-height: 490px"
+      >
         <q-card rounded flat class="text-center">
           <div class="q-ma-xs">
             <p class="title-account" style="margin-top: 10px">
@@ -63,12 +66,20 @@
           </p>
         </q-card>
       </div>
-      <div class="">
-        <img src="~assets/img/cloud-up.png" class="cloud-up" />
-        <img src="~assets/img/cloud-down.png" class="cloud-down" />
-        <img src="~assets/img/bell.png" class="img-1" />
-        <img src="~assets/img/card.png" class="img-2" />
-        <img src="~assets/img/phone.png" class="img-3" />
+      <img src="~assets/img/cloud-up.png" class="cloud-up" />
+      <img src="~assets/img/cloud-down.png" class="cloud-down" />
+      <div style="position: absolute; top: 0%; height: 18%; width: 100%">
+        <img
+          src="~assets/img/bell.png"
+          style="height: 30%; margin-top: 7%; margin-left: 10%"
+        />
+      </div>
+      <div style="position: absolute; top: 87%; height: 15%; width: 100%">
+        <img
+          src="~assets/img/phone.png"
+          style="height: 60%; margin-left: 10%"
+        />
+        <img src="~assets/img/card.png" style="height: 80%; margin-left: 30%" />
       </div>
     </div>
   </div>
@@ -98,27 +109,9 @@ export default {
   border-radius: 23.76px;
   margin: 5px 0px;
 }
-.img-1 {
-  position: absolute;
-  top: 12%;
-  left: 15%;
-  height: 5%;
-}
-.img-2 {
-  position: absolute;
-  top: 80%;
-  left: 20%;
-  height: 15%;
-}
-.img-3 {
-  position: absolute;
-  top: 80%;
-  left: 60%;
-  height: 10%;
-}
 .cloud-up {
   position: absolute;
-  top: 10%;
+  top: 5%;
   left: 0.5%;
   width: 99%;
   height: 20%;
