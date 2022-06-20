@@ -75,9 +75,7 @@
             style="font-size: 13px; font-weight: 300"
           >
             ¿Ya tienes una cuenta?
-            <h-ref to="/registrarse" style="font-weight: 600">
-              Inicia sesión
-            </h-ref>
+            <a href="/registrarse" style="font-weight: 600"> Inicia sesión </a>
           </p>
         </q-card>
       </div>
