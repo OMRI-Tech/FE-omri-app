@@ -1,12 +1,25 @@
 <template>
   <div class="fullscreen">
-    <div class="absolute-center back" style="min-width: 100%; min-height: 100%">
+    <div class="items-center back" style="min-width: 100%; min-height: 100%">
       <img src="~assets/img/cloud-up.png" class="cloud-up" />
       <img src="~assets/img/cloud-down.png" class="cloud-down" />
-      <div
-        class="fixed-center card"
-        style="min-width: 90%; height: 62%; max-height: 490px"
-      >
+      <div style="position: absolute; top: 0%; height: 18%; width: 100%">
+        <img
+          src="~assets/img/bell.png"
+          style="height: 30%; margin-top: 7%; margin-left: 10%"
+        />
+      </div>
+      <div style="position: absolute; top: 87%; height: 15%; width: 100%">
+        <img
+          src="~assets/img/phone.png"
+          style="height: 55%; margin-left: 10%"
+        />
+        <img
+          src="~assets/img/card.png"
+          style="height: 70%; margin-left: 30%; margin-top: 10px"
+        />
+      </div>
+      <div class="fixed-center card" style="min-width: 90%; max-height: 490px">
         <q-card rounded flat class="text-center">
           <div class="q-ma-xs">
             <p class="title-account" style="margin-top: 10px">
@@ -75,25 +88,11 @@
             style="font-size: 13px; font-weight: 300"
           >
             ¿Ya tienes una cuenta?
-            <a href="/registrarse" style="font-weight: 600"> Inicia sesión </a>
+            <a href="/#/registrarse" style="font-weight: 600">
+              Inicia sesión
+            </a>
           </p>
         </q-card>
-      </div>
-      <div style="position: absolute; top: 0%; height: 18%; width: 100%">
-        <img
-          src="~assets/img/bell.png"
-          style="height: 30%; margin-top: 7%; margin-left: 10%"
-        />
-      </div>
-      <div style="position: absolute; top: 87%; height: 15%; width: 100%">
-        <img
-          src="~assets/img/phone.png"
-          style="height: 55%; margin-left: 10%"
-        />
-        <img
-          src="~assets/img/card.png"
-          style="height: 70%; margin-left: 30%; margin-top: 10px"
-        />
       </div>
     </div>
   </div>
