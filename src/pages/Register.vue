@@ -3,57 +3,32 @@
     <div class="items-center back" style="min-width: 100%; min-height: 100%">
       <img src="~assets/img/cloud-up.png" class="cloud-up" />
       <img src="~assets/img/cloud-down.png" class="cloud-down" />
-      <div style="position: absolute; top: 0%; height: 18%; width: 100%">
-        <img
-          src="~assets/img/bell.png"
-          style="height: 30%; margin-top: 7%; margin-left: 10%"
-        />
+      <div class="top-img-section">
+        <img src="~assets/img/card.png" class="letter" />
       </div>
-      <div style="position: absolute; top: 87%; height: 15%; width: 100%">
-        <img
-          src="~assets/img/phone.png"
-          style="height: 55%; margin-left: 10%"
-        />
-        <img
-          src="~assets/img/card.png"
-          style="height: 70%; margin-left: 30%; margin-top: 10px"
-        />
+      <div class="bottom-img-section">
+        <img src="~assets/img/bell.png" class="bell" />
+        <img src="~assets/img/phone.png" class="phone" />
       </div>
-      <div class="fixed-center card" style="min-width: 90%; max-height: 490px">
+      <div class="fixed-center card">
         <q-card rounded flat class="text-center">
           <div class="q-ma-xs">
-            <p class="title-account" style="margin-top: 10px">
-              Crear una cuenta
-            </p>
-            <q-btn rounded flat class="button" style="max-height: 50px">
+            <p class="title-account q-mt-md">Crear una cuenta</p>
+            <q-btn rounded flat class="button">
               <p class="text-button">Registrate con</p>
               <q-icon class="q-ml-sm" size="sm">
-                <img src="~assets/logos/facebook.png" style="height: 25px" />
+                <img src="~assets/logos/facebook.png" />
               </q-icon>
             </q-btn>
-            <q-btn rounded flat class="button" style="max-height: 50px">
+            <q-btn rounded flat class="button">
               <p class="text-button">Registrate con</p>
               <q-icon class="q-ml-sm" size="sm">
-                <img src="~assets/logos/google.png" style="height: 25px" />
+                <img src="~assets/logos/google.png" />
               </q-icon>
             </q-btn>
           </div>
-          <p
-            class="title-account"
-            style="
-              margin-top: 1.5%;
-              font-weight: 600;
-              font-size: 17px;
-              line-height: 21px;
-            "
-          >
-            - OR -
-          </p>
-          <q-form
-            style="margin-left: 19%; margin-right: 18%"
-            align="center"
-            @submit.prevent=""
-          >
+          <p class="title-account or">- OR -</p>
+          <q-form class="form-register" align="center" @submit.prevent="">
             <q-input
               dense
               v-model="user.name"
@@ -79,18 +54,12 @@
               rounded
               class="q-ma-md full-width button-submit text-button"
               type="submit"
-              style="color: #ffffff"
               >Crear cuenta</q-btn
             >
           </q-form>
-          <p
-            class="title-account q-mt-xs"
-            style="font-size: 13px; font-weight: 300"
-          >
+          <p class="title-account q-mt-xs login">
             ¿Ya tienes una cuenta?
-            <a href="/#/registrarse" style="font-weight: 600">
-              Inicia sesión
-            </a>
+            <a href="/#/registrarse" class="href"> Inicia sesión </a>
           </p>
         </q-card>
       </div>
@@ -121,6 +90,8 @@ export default {
   background: #ffffff;
   border-radius: 23.76px;
   margin: 5px 0px;
+  min-width: 90%;
+  max-height: 490px;
 }
 .cloud-up {
   position: absolute;
@@ -151,6 +122,7 @@ export default {
   border-radius: 23.76px;
   margin-top: 3%;
   width: 65%;
+  max-height: 50px;
 }
 .text-button {
   font-family: "Poppins";
@@ -173,5 +145,52 @@ export default {
   background: #003f54;
   box-shadow: 0px 4px 31px rgba(227, 227, 227, 0.25);
   border-radius: 53px;
+  color: #ffffff;
+}
+.top-img-section {
+  position: absolute;
+  top: 0%;
+  height: 18%;
+  width: 100%;
+}
+.bottom-img-section {
+  position: absolute;
+  bottom: 0%;
+  height: 15%;
+  width: 100%;
+}
+.letter {
+  height: 60%;
+  margin-left: 10%;
+  margin-top: 10px;
+}
+.bell {
+  height: 30%;
+  margin-top: 5%;
+  margin-left: 45%;
+  vertical-align: top;
+}
+.phone {
+  height: 60%;
+  margin-left: 10%;
+  vertical-align: top;
+  margin-top: 5%;
+}
+.or {
+  margin-top: 1.5%;
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 21px;
+}
+.form-register {
+  margin-left: 19%;
+  margin-right: 18%;
+}
+.login {
+  font-size: 13px;
+  font-weight: 300;
+}
+.href {
+  font-weight: 600;
 }
 </style>
