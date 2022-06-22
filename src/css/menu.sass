@@ -1,6 +1,8 @@
+$base-bg-color: #003F54
+
 %custom-hf
   height: 8%
-  background-color: #003F54
+  background-color: $base-bg-color
 
 %ic-head
   font-weight: 700
@@ -40,3 +42,37 @@ body
 .ic-heart
   @extend %ic-head
   color: #FF4B4B
+
+.q-linear-progress__model
+  background: linear-gradient(89.94deg, #FC335F 8.96%, #78D1FF 96.47%)
+  border-radius: 10px
+
+.main-rectangle
+  background: $base-bg-color
+  border: 3px solid #FFE69F
+  border-radius: 16px
+  width: 95%
+  max-height: 160px
+  margin: 15px auto auto auto
+
+  & > div
+    padding: 10px
+
+    & > .txt-title
+      font-weight: 500
+      font-size: 21.6px
+      line-height: 32px
+      text-align: center
+      color: #FFFFFF
+
+    & > .txt-level
+      font-weight: 400
+      font-size: 10px
+      line-height: 15px
+      color: #92F200
+
+    & > .txt-progress
+      font-weight: 400
+      font-size: 14px
+      line-height: 21px
+      color: #FFFFFF
