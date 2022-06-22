@@ -8,8 +8,8 @@
         <p class="txt-level">Intermedio</p>
       </div>
       <div class="info-image col-3 column inline justify-end">
-        <q-img class="q-mx-auto" src="~assets/img/squares.png" style="max-height: 70px; max-width: 75px;" spinner-color="white" />
-        <q-img class="q-mx-auto" src="~assets/img/entrenator.png" style="-webkit-transform: scaleX(-1); transform: scaleX(-1); max-height: 100px; max-width: 75px;" spinner-color="white" />
+        <q-img class="q-mx-auto squares" src="~assets/img/squares.png" spinner-color="white" />
+        <q-img class="q-mx-auto entrenator" src="~assets/img/entrenator.png" spinner-color="white" />
       </div>
     </div>
   </q-page>

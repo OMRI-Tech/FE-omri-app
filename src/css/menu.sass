@@ -54,9 +54,6 @@ body
   & > div.info-image
     padding: 10px
 
-    & > q-img
-      object-fit: contain
-
   & > div.info-rectangle
     padding: 15px
 
@@ -77,6 +74,18 @@ body
       font-size: 14px
       line-height: 21px
       color: #FFFFFF
+
+// Custom styles for test images
+.squares
+  max-height: 70px
+  max-width: 75px
+
+.entrenator
+  max-height: 100px
+  max-width: 75px
+  // flip
+  -webkit-transform: scaleX(-1)
+  transform: scaleX(-1)
 
 // Custom linear progress
 .q-linear-progress
