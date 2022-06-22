@@ -43,10 +43,6 @@ body
   @extend %ic-head
   color: #FF4B4B
 
-.q-linear-progress__model
-  background: linear-gradient(89.94deg, #FC335F 8.96%, #78D1FF 96.47%)
-  border-radius: 10px
-
 .main-rectangle
   background: $base-bg-color
   border: 3px solid #FFE69F
@@ -55,14 +51,19 @@ body
   max-height: 160px
   margin: 15px auto auto auto
 
-  & > div
+  & > div.info-image
     padding: 10px
+
+    & > q-img
+      object-fit: contain
+
+  & > div.info-rectangle
+    padding: 15px
 
     & > .txt-title
       font-weight: 500
       font-size: 21.6px
       line-height: 32px
-      text-align: center
       color: #FFFFFF
 
     & > .txt-level
@@ -76,3 +77,16 @@ body
       font-size: 14px
       line-height: 21px
       color: #FFFFFF
+
+// Custom linear progress
+.q-linear-progress
+  box-shadow: 0px 3.2px 3.2px rgba(0, 0, 0, 0.25)
+
+.q-linear-progress__model
+  background: linear-gradient(89.94deg, #FC335F 8.96%, #78D1FF 96.47%)
+  border-radius: 10px
+
+.q-linear-progress__track
+  background: #7B7B7B
+  opacity: 1
+  box-shadow: inset 0px 3.2px 3.2px rgba(0, 0, 0, 0.25)
