@@ -29,28 +29,12 @@
 
     <q-footer class="footer">
       <q-toolbar class="justify-center">
-        <div class="q-px-sm">
-          <q-btn class="ic-footer" flat stack>
+        <div v-for="(section, i) in sections" :key="i" class="col q-px-sm horizontal-center">
+          <q-btn :to="{ name: section.to }" class="ic-footer" flat stack>
             <q-icon size="1.5rem">
-              <q-img src="~assets/icons/out_profile.svg" />
+              <q-img :src="isActiveSection(section) ? section.activeIcon : section.inactiveIcon" />
             </q-icon>
-            Profile
-          </q-btn>
-        </div>
-        <div class="q-px-sm">
-          <q-btn class="ic-footer" flat stack>
-            <q-icon size="1.5rem">
-              <q-img src="~assets/icons/out_ranking.svg" />
-            </q-icon>
-            Ranking
-          </q-btn>
-        </div>
-        <div class="q-px-sm">
-          <q-btn class="ic-footer" flat stack>
-            <q-icon size="1.5rem">
-              <q-img src="~assets/icons/out_calendar.svg" />
-            </q-icon>
-            Calendar
+            {{ section.title }}
           </q-btn>
         </div>
       </q-toolbar>
@@ -59,10 +43,28 @@
 </template>
 
 <script>
-import { defineComponent } from "@vue/composition-api";
-import "src/css/menu.sass"
+import { defineComponent } from 'vue'
 
 export default defineComponent({
-  name: "MenuLayout",
-});
+  name: 'MenuLayout',
+  setup () {
+    const sections = [
+      { title: 'Profile', inactiveIcon: require('assets/icons/out_profile.svg'), activeIcon: require('assets/icons/out_profile.svg'), to: '' },
+      { title: 'Ranking', inactiveIcon: require('assets/icons/out_ranking.svg'), activeIcon: require('assets/icons/out_ranking.svg'), to: '' },
+      { title: 'Calendar', inactiveIcon: require('assets/icons/out_calendar.svg'), activeIcon: require('assets/icons/out_calendar.svg'), to: '' }
+    ]
+    return {
+      sections
+    }
+  },
+  methods: {
+    isActiveSection (section) {
+      return this.$route.name === section.to
+    }
+  }
+})
 </script>
+
+<style lang="sass" scoped>
+  @import url('src/css/menu.sass')
+</style>
