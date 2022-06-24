@@ -52,10 +52,12 @@ body
   margin: 15px auto auto auto
 
   & > div.info-image
-    padding: 10px
+    padding: 15px
+    width: 30%
 
   & > div.info-rectangle
     padding: 15px
+    width: 70%
 
     & > .txt-title
       font-weight: 500
@@ -75,14 +77,19 @@ body
       line-height: 21px
       color: #FFFFFF
 
+  @media (max-width: 355px)
+    & > div.info-image
+      display: none
+
+    & > div.info-rectangle
+      width: 100%
+
 // Custom styles for test images
 .squares
-  max-height: 70px
-  max-width: 75px
+  max-width: 70px
 
 .entrenator
-  max-height: 100px
-  max-width: 75px
+  max-width: 70px
   // flip
   -webkit-transform: scaleX(-1)
   transform: scaleX(-1)
