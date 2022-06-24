@@ -1,6 +1,6 @@
 <template>
   <div class="fullscreen">
-    <div class="items-center back" style="min-width: 100%; min-height: 100%">
+    <div class="items-center back">
       <img src="~assets/img/cloud-up.png" class="cloud-up" />
       <img src="~assets/img/cloud-down.png" class="cloud-down" />
       <div class="top-img-section">
@@ -11,7 +11,7 @@
         <img src="~assets/img/phone.png" class="phone" />
       </div>
       <div class="fixed-center card">
-        <q-card rounded flat class="text-center">
+        <div rounded flat class="text-center">
           <div class="q-ma-xs">
             <p class="title-account q-mt-md">Crear una cuenta</p>
             <q-btn rounded flat class="button">
@@ -61,7 +61,7 @@
             ¿Ya tienes una cuenta?
             <a href="/#/registrarse" class="href"> Inicia sesión </a>
           </p>
-        </q-card>
+        </div>
       </div>
     </div>
   </div>
@@ -85,13 +85,15 @@ export default {
 .back {
   background: linear-gradient(180deg, #d2fdfd 42.74%, #ecffef 93.06%);
   box-shadow: 0px 4px 31px rgba(227, 227, 227, 0.25);
+  min-width: 100%;
+  min-height: 100%;
 }
 .card {
   background: #ffffff;
   border-radius: 23.76px;
   margin: 5px 0px;
   min-width: 90%;
-  max-height: 490px;
+  max-height: 550px;
 }
 .cloud-up {
   position: absolute;
