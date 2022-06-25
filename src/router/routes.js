@@ -5,7 +5,14 @@ const routes = [
     component: () => import('layouts/MenuLayout.vue'),
     children: [
       { path: '', component: () => import('pages/Index.vue'), name: 'Home', meta: { auth: true } },
-      { path: 'menu', component: () => import('pages/Menu.vue'), name: 'Menu', meta: { auth: true } },
+      { path: 'menu', component: () => import('pages/Menu.vue'), name: 'Menu', meta: { auth: true } }
+    ]
+  },
+  {
+    path: '/lessons',
+    component: () => import('layouts/LessonLayout.vue'),
+    children: [
+      { path: '', component: () => import('pages/LessonEmpty.vue'), name: 'LessonEmpty', meta: { auth: true } }
     ]
   },
   {
