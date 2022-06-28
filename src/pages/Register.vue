@@ -3,8 +3,19 @@
     <div class="items-center back">
       <img :src="images.cloudUp" class="cloud-up" />
       <img :src="images.cloudDown" class="cloud-down" />
-      <div class="top-img-section">
-        <img :src="images.card" class="letter" />
+      <div class="top-img-section items-center row justify-center">
+        <div class="col row column items-center">
+          <div class="col "></div>
+          <img :src="images.card" class="letter col-md-auto"/>
+          <div class="col "></div>
+        </div>
+        <div class="col row column items-center">
+          <div class="col "></div>
+          <img src="~assets/logos/omri.png" class="col-md-auto ">
+          <div class="col "></div>
+        </div>
+        <div class="col">
+        </div>
       </div>
       <div class="bottom-img-section">
         <img :src="images.bell" class="bell" />
