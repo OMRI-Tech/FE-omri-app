@@ -29,28 +29,12 @@
 
     <q-footer class="footer">
       <q-toolbar class="justify-center">
-        <div class="q-px-sm">
+        <div v-for="(item, i) in itemsFooter" :key="i" class="q-px-sm col horizontal-center">
           <q-btn class="ic-footer" flat stack>
             <q-icon size="1.5rem">
-              <q-img src="~assets/icons/out_profile.svg" />
+              <q-img :src="item.activeImage" />
             </q-icon>
-            Profile
-          </q-btn>
-        </div>
-        <div class="q-px-sm">
-          <q-btn class="ic-footer" flat stack>
-            <q-icon size="1.5rem">
-              <q-img src="~assets/icons/out_ranking.svg" />
-            </q-icon>
-            Ranking
-          </q-btn>
-        </div>
-        <div class="q-px-sm">
-          <q-btn class="ic-footer" flat stack>
-            <q-icon size="1.5rem">
-              <q-img src="~assets/icons/out_calendar.svg" />
-            </q-icon>
-            Calendar
+            {{ item.title }}
           </q-btn>
         </div>
       </q-toolbar>
@@ -59,10 +43,19 @@
 </template>
 
 <script>
-import { defineComponent } from "@vue/composition-api";
-import "src/css/menu.sass"
+import { defineComponent } from 'vue'
+import 'src/css/menu.sass'
 
 export default defineComponent({
-  name: "MenuLayout",
-});
+  name: 'MenuLayout',
+  setup () {
+    return {
+      itemsFooter: [
+        { title: 'Profile', activeImage: require('assets/icons/out_profile.svg'), regularImage: '', to: '' },
+        { title: 'Ranking', activeImage: require('assets/icons/out_ranking.svg'), regularImage: '', to: '' },
+        { title: 'Calendar', activeImage: require('assets/icons/out_calendar.svg'), regularImage: '', to: '' }
+      ]
+    }
+  }
+})
 </script>
