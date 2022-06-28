@@ -3,8 +3,19 @@
     <div class="items-center back">
       <img src="~assets/img/cloud-up.png" class="cloud-up" />
       <img src="~assets/img/cloud-down.png" class="cloud-down" />
-      <div class="top-img-section">
-        <img src="~assets/img/card.png" class="letter" />
+      <div class="top-img-section items-center row justify-center">
+        <div class="col row column items-center">
+          <div class="col "></div>
+          <img src="~assets/img/card.png" class="letter col-md-auto"/>
+          <div class="col "></div>
+        </div>
+        <div class="col row column items-center">
+          <div class="col "></div>
+          <img src="~assets/logos/omri.png" class="col-md-auto ">
+          <div class="col "></div>
+        </div>
+        <div class="col">
+        </div>
       </div>
       <div class="bottom-img-section">
         <img src="~assets/img/bell.png" class="bell" />
@@ -162,9 +173,7 @@ export default {
   width: 100%;
 }
 .letter {
-  height: 60%;
-  margin-left: 10%;
-  margin-top: 10px;
+  max-height: 75px;
 }
 .bell {
   height: 30%;
