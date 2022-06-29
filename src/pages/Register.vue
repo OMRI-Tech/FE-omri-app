@@ -25,7 +25,7 @@
         <div rounded flat class="text-center">
           <div class="q-ma-xs">
             <p class="title-account q-mt-md">Crear una cuenta</p>
-            <q-btn rounded flat class="button">
+            <!-- <q-btn rounded flat class="button">
               <p class="text-button">Registrate con</p>
               <q-icon class="q-ml-sm" size="sm">
                 <img :src="images.logoFacebook" />
@@ -36,14 +36,45 @@
               <q-icon class="q-ml-sm" size="sm">
                 <img :src="images.logoGoogle" />
               </q-icon>
-            </q-btn>
+            </q-btn> -->
           </div>
-          <p class="title-account or">- OR -</p>
+          <!-- <p class="title-account or">- OR -</p> -->
           <q-form class="form-register" align="center" @submit.prevent="">
-            <q-input dense v-model="user.name" class="q-mb-sm text-button" label="Nombre completo" color="teal" />
+            <q-input dense v-model="user.name" class="q-mb-sm text-button" label="Nombre(s)" color="teal" />
             <q-input dense v-model="user.email" class="q-my-sm text-button" label="Correo electrónico" color="teal" />
-            <q-input dense v-model="user.password" class="q-my-sm text-button" label="Contraseña" color="teal" />
-            <q-btn rounded class="q-ma-md full-width button-submit text-button" type="submit" label="Crear cuenta" />
+            <q-input dense
+              v-model="user.password"
+              class="q-my-sm text-button"
+              :type="isPwd ? 'password' : 'text'"
+              label="Contraseña"
+              color="teal"
+            >
+              <template v-slot:append>
+                <q-icon
+                  :name="isPwd ? 'visibility_off' : 'visibility'"
+                  class="cursor-pointer"
+                  @click="isPwd = !isPwd"
+                />
+              </template>
+            </q-input>
+            <q-input dense v-model="user.lname" class="q-my-sm text-button" label="Apellido Paterno" color="teal" />
+            <q-input dense v-model="user.mlname" class="q-my-sm text-button" label="Apellido Materno" color="teal" />
+            <q-input
+              dense
+              v-model.number="user.telNum"
+              class="q-my-sm text-button"
+              type="tel" mask="##########"
+              label="Teléfono"
+              color="teal"
+            />
+
+            <q-btn
+              rounded
+              class="q-ma-md full-width button-submit text-button"
+              type="submit"
+              label="Crear cuenta"
+              :disabled = verification
+            />
           </q-form>
           <p class="title-account q-mt-xs login">
             ¿Ya tienes una cuenta?
@@ -56,7 +87,7 @@
 </template>
 
 <script>
-import { ref, defineComponent } from 'vue'
+import { ref, defineComponent, reactive, computed } from 'vue'
 
 export default defineComponent({
   setup () {
@@ -69,14 +100,28 @@ export default defineComponent({
       cloudUp: require('assets/img/cloud-up.png'),
       cloudDown: require('assets/img/cloud-down.png')
     }
-    const user = ref({
+    const user = reactive({
       name: '',
       email: '',
-      password: ''
+      password: '',
+      lname: '',
+      mlname: '',
+      telNum: null
+    })
+    const isPwd = ref(true)
+    const verification = computed(() => {
+      var Valid = (user.name !== '')
+      Valid = (Valid & user.lname !== '')
+      Valid = (Valid & (user.email.includes('@') & user.email.includes('.')))
+      Valid = (Valid & user.password !== '')
+      Valid = (Valid & (user.telNum !== null & String(user.telNum).length >= 10))
+      return Valid == 0
     })
     return {
       user,
-      images
+      images,
+      isPwd,
+      verification
     }
   }
 })
