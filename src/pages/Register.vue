@@ -63,8 +63,9 @@
                 dense v-model.number="user.telNum"
                 class="q-my-sm text-button col"
                 type="tel" mask="(###)###-####"
+                unmasked-value
                 label="Teléfono*" color="teal"
-                :rules="[val => val.trim().length >= 13 || 'Campo no válido']"
+                :rules="[val => String(val).length >= 10 || 'Campo no válido']"
               />
             </div>
             <q-input
@@ -145,7 +146,7 @@ export default defineComponent({
       Valid = (Valid & user.lname.trim() !== '')
       Valid = (Valid & (user.email.includes('@') & user.email.includes('.')))
       Valid = (Valid & user.password.trim() !== '')
-      Valid = (Valid & (user.telNum.trim().length >= 13))
+      Valid = (Valid & (String(user.telNum).length >= 10))
       Valid = (Valid & user.priv)
       return Valid == 0
     })
