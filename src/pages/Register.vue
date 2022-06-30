@@ -40,14 +40,46 @@
           </div>
           <!-- <p class="title-account or">- OR -</p> -->
           <q-form class="form-register" align="center" @submit.prevent="">
-            <q-input dense v-model="user.name" class="q-mb-sm text-button" label="Nombre(s)" color="teal" />
-            <q-input dense v-model="user.email" class="q-my-sm text-button" label="Correo electrónico" color="teal" />
-            <q-input dense
-              v-model="user.password"
+            <q-input
+            dense v-model="user.name"
+            class="q-mb-sm text-button"
+            label="Nombre(s)*" color="teal"
+            :rules="[val => val.trim() !== '' || 'Campo no válido']"/>
+            <q-input dense v-model="user.lname"
+              class="q-my-sm text-button"
+              label="Apellido Paterno*" color="teal"
+              :rules="[val => val.trim() !== '' || 'Campo no válido']"
+            />
+            <q-input dense v-model="user.mlname" class="q-my-sm text-button" label="Apellido Materno (opcional)" color="teal" />
+            <div class="row">
+              <q-input
+                dense v-model="user.birthdate"
+                class="q-my-sm text-button col"
+                hint="Fecha de nacimiento*"
+                color="teal" type="date"
+                :rules="[val => val.trim() !== '' || 'Campo no válido']"
+              />
+              <q-input
+                dense v-model.number="user.telNum"
+                class="q-my-sm text-button col"
+                type="tel" mask="(###)###-####"
+                unmasked-value
+                label="Teléfono*" color="teal"
+                :rules="[val => String(val).length >= 10 || 'Campo no válido']"
+              />
+            </div>
+            <q-input
+              dense v-model="user.email"
+              class="q-my-sm text-button"
+              label="Correo electrónico*" color="teal" 
+              :rules="[val => val.trim() !== '' || 'Campo no válido']"
+            />
+            <q-input 
+              dense v-model="user.password"
               class="q-my-sm text-button"
               :type="isPwd ? 'password' : 'text'"
-              label="Contraseña"
-              color="teal"
+              label="Contraseña*" color="teal"
+              :rules="[val => val.trim() !== '' || 'Campo no válido']"
             >
               <template v-slot:append>
                 <q-icon
@@ -57,17 +89,15 @@
                 />
               </template>
             </q-input>
-            <q-input dense v-model="user.lname" class="q-my-sm text-button" label="Apellido Paterno" color="teal" />
-            <q-input dense v-model="user.mlname" class="q-my-sm text-button" label="Apellido Materno" color="teal" />
-            <q-input
-              dense
-              v-model.number="user.telNum"
-              class="q-my-sm text-button"
-              type="tel" mask="##########"
-              label="Teléfono"
-              color="teal"
-            />
-
+            <div class="row items-center">
+              <q-toggle dense v-model="user.priv" class="tittle-account login"/>
+              <div class="col column items-center">
+                <p class="tittle-account login col q-ma-sm">
+                  Acepto las 
+                  <a href="https://www.omri.org.mx/aviso-de-privacidad" target="_blank">Políticas de privacidad</a>*
+                </p>
+              </div>
+            </div>
             <q-btn
               rounded
               class="q-ma-md full-width button-submit text-button"
@@ -106,15 +136,18 @@ export default defineComponent({
       password: '',
       lname: '',
       mlname: '',
-      telNum: null
+      telNum: '',
+      birthdate: '',
+      priv: true,
     })
     const isPwd = ref(true)
     const verification = computed(() => {
       var Valid = (user.name !== '')
-      Valid = (Valid & user.lname !== '')
+      Valid = (Valid & user.lname.trim() !== '')
       Valid = (Valid & (user.email.includes('@') & user.email.includes('.')))
-      Valid = (Valid & user.password !== '')
-      Valid = (Valid & (user.telNum !== null & String(user.telNum).length >= 10))
+      Valid = (Valid & user.password.trim() !== '')
+      Valid = (Valid & (String(user.telNum).length >= 10))
+      Valid = (Valid & user.priv)
       return Valid == 0
     })
     return {
