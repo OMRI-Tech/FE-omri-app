@@ -12,7 +12,8 @@ const routes = [
     path: '/lessons',
     component: () => import('layouts/LessonLayout.vue'),
     children: [
-      { path: '', component: () => import('pages/LessonEmpty.vue'), name: 'LessonEmpty', meta: { auth: true } }
+      { path: '', component: () => import('pages/LessonEmpty.vue'), name: 'LessonEmpty', meta: { auth: true } },
+      { path: ':topic/:section/:lesson', component: () => import('pages/Lessons/Index.vue'), name: 'Lesson', meta: { auth: true } }
     ]
   },
   {
