@@ -1,5 +1,6 @@
 const routes = [
   { path: '/registrarse', component: () => import('pages/Register.vue'), name: 'Register', meta: { type: 'auth' } },
+  { path: '/login', component: () => import('pages/Login.vue'), name: 'Login', meta: { type: 'auth' } },
   {
     path: '/',
     component: () => import('layouts/MenuLayout.vue'),
