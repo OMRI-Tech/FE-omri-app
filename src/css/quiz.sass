@@ -25,7 +25,7 @@ body
   max-width: 710px
   background: url("~assets/img/cards.svg") no-repeat center center
   width: 90%
-  margin: 20px auto 50px auto
+  margin: 20px auto 40px auto
   position: relative
 
 .question
@@ -47,6 +47,54 @@ body
   top: 15px
   left: 0
   right: 0
+
+// In answers: Activate hover when the option is selected
+.answers
+  width: 90%
+  margin: auto
+
+  // Buttons styles
+  & > .answ
+    font-style: normal
+    font-weight: 700
+    font-size: 15px !important
+    line-height: 22px
+    text-align: center
+    color: #FFFFFF
+    margin-bottom: 20px
+
+    // Option
+    &.option-1
+      background: #008FD1
+      box-shadow: 0px 4px 4px #0036FF
+
+      &-selected
+        text-decoration: underline
+        background: #05B0FF
+
+    &.option-2
+      background: #EF7C00
+      box-shadow: 0px 4px 4px #FFC123
+
+      &-selected
+        text-decoration: underline
+        background: #FF9523
+
+    &.option-3
+      background: #DD137A
+      box-shadow: 0px 4px 4px #FF038B
+
+      &-selected
+        text-decoration: underline
+        background: #EE3593
+
+    &.option-4
+      background: #84C325
+      box-shadow: 0px 4px 4px #D0FF15
+
+      &-selected
+        text-decoration: underline
+        background: #9DDB40
 
 // This class remove the background in any DOM element
 .q-bg-none
