@@ -7,9 +7,8 @@
 <script>
 import { defineComponent, ref, onBeforeMount } from 'vue'
 import { useRoute } from 'vue-router'
-import ks11 from 'pages/Lessons/Karel/Seccion 1/Leccion 1/Index.vue'
-import ks12 from 'pages/Lessons/Karel/Seccion 1/Leccion 2/index.vue'
-import cs23 from 'pages/Lessons/C/Seccion 2/Leccion 3/Index.vue'
+import ks11 from 'pages/Lessons/Karel/Seccion 1/Leccion 1'
+import ks12 from 'pages/Lessons/Karel/Seccion 1/Leccion 2'
 /**
  * TODO: Añade aquí las lecciones en formato "Lenguaje", "Seccion #", "Leccion #"
  * Respeta el prefijo "ks" para lecciones de karel y "cs" para lecciones de c
