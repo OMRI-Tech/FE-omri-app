@@ -18,6 +18,13 @@ const routes = [
     ]
   },
   {
+    path: '/quiz',
+    component: () => import('layouts/QuizLayout.vue'),
+    children: [
+      { path: '', component: () => import('pages/Quiz.vue'), name: 'Quiz', meta: { auth: true } }
+    ]
+  },
+  {
     path: '/:catchAll(.*)*',
     component: () => import('pages/Error404.vue'),
   },
