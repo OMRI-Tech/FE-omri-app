@@ -1,5 +1,9 @@
 $base-bg-color: #003F54
 
+%content-page
+  width: 90% !important
+  margin: 20px auto 15px auto
+
 body
   background: url("~assets/background/squares-questionarie.png"), linear-gradient(180deg, #EDEAFF 42.74%, #E1FFF9 93.06%)
   background-size: 50% auto
@@ -21,37 +25,35 @@ body
 
 
 .question-bg
-  min-height: 270px
+  @extend %content-page
+  min-height: 175px
   max-width: 710px
   background: url("~assets/img/cards.svg") no-repeat center center
-  width: 90%
-  margin: 20px auto 40px auto
   position: relative
 
-.question
-  width: 92%
-  min-height: 82%
-  margin: auto
-  background: #FFFFFF
-  border: 0.5px solid #008FD1
-  border-radius: 11px
-  // font and style in question
-  padding: 10px
-  font-weight: 500
-  font-size: 15px
-  line-height: 22px
-  text-align: center
-  color: #003F54
-  // position in parent div
-  position: absolute
-  top: 15px
-  left: 0
-  right: 0
+  & > .question
+    width: 92%
+    min-height: 82%
+    margin: auto
+    background: #FFFFFF
+    border: 0.5px solid #008FD1
+    border-radius: 11px
+    // font and style in question
+    padding: 10px
+    font-weight: 500
+    font-size: 15px
+    line-height: 22px
+    text-align: center
+    color: #003F54
+    // position in parent div
+    position: absolute
+    top: 15px
+    left: 0
+    right: 0
 
 // In answers: Activate hover when the option is selected
 .answers
-  width: 90%
-  margin: auto
+  @extend %content-page
 
   // Buttons styles
   & > .answ
@@ -95,6 +97,37 @@ body
       &-selected
         text-decoration: underline
         background: #9DDB40
+
+.question-foot
+  @extend %content-page
+  position: relative
+  border-radius: 22px
+  min-height: 100px
+  background: #FFFFFF url("~assets/img/entrenator.png") no-repeat right bottom
+  background-size: 75px auto
+
+  %qf-font
+    position: absolute
+    left: 0
+    right: 0
+    font-style: normal
+    font-weight: 600
+    text-align: center
+    color: #003F54
+    height: 50%
+    width: 100%
+
+  & > .title
+    @extend %qf-font
+    font-size: 21.6px
+    line-height: 32px
+    top: 20%
+
+  & > .sub-title
+    @extend %qf-font
+    font-size: 14px
+    line-height: 21px
+    top: 50%
 
 // This class remove the background in any DOM element
 .q-bg-none

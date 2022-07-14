@@ -1,7 +1,7 @@
 <template>
-  <q-page>
-    <!-- Div with cards background -->
-    <div class="question-bg column justify-center">
+  <q-page class="row">
+    <!-- Question -->
+    <div class="question-bg justify-center">
       <div class="question">
       </div>
     </div>
@@ -16,6 +16,12 @@
         label="Lorem ipsum dolor"
         @click="selected(index)"
         />
+    </div>
+
+    <!-- Footer -->
+    <div class="question-foot text-center">
+      <div class="title">Question 2</div>
+      <div class="sub-title">2 out 15</div>
     </div>
   </q-page>
 </template>
