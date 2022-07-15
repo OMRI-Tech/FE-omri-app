@@ -1,7 +1,8 @@
 <template>
-  <div>
-    <h4>Esta es la sección 2</h4>
-    <h5>lección 6</h5>
+  <div class="items-center">
+    <div v-for="(image,index) in images" :key="index" class="text-center">
+      <img :src="image" class="img-content">
+    </div>
   </div>
 </template>
 
@@ -19,6 +20,13 @@ export default defineComponent({
         img6: require('src/pages/Lessons/Karel/Seccion 2/Leccion 6/Images/image006.png'),
         img7: require('src/pages/Lessons/Karel/Seccion 2/Leccion 6/Images/image007.png')
     }
+    return { images } 
   }
 })
 </script>
+<style scoped>
+.img-content { 
+  max-height: 250px;
+  max-width: 320px;
+}
+</style>
