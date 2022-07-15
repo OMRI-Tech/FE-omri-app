@@ -33,7 +33,8 @@ export default defineComponent({
   name: 'Lesson',
   components: {
     ks11,
-    ks12
+    ks12,
+    cs23
     /**
      * TODO: Añade aqui el componente
      * Prueba visitando /lessons/LANG/X/Y donde "LANG" es karel o c, X es el número de seccion y Y el número de lección
