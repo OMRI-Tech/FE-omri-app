@@ -8,7 +8,7 @@
 <script>
 import { defineComponent } from "vue"
 export default defineComponent({
-  name: 'ks26',
+  name: 'ks28',
   setup () {
     const images = {
         img1: require('src/pages/Lessons/Karel/Seccion 2/Leccion 8/Images/image001.png'),
