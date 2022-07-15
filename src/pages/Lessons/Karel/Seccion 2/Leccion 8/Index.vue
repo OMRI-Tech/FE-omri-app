@@ -1,12 +1,50 @@
 <template>
-  <div>
-    <h4>Esta es la sección 2</h4>
-    <h5>lección 7</h5>
+  <div class="items-center">
+    <div class="text-justify">
+      <p>{{parrafos.parrafo1}}</p>
+      <img :src="images.img1" class="img-content">
+      <p>{{parrafos.parrafo2}}</p>
+      <img :src="images.img2" class="img-content">
+      <p>{{parrafos.parrafo3}}</p>
+      <img :src="images.img3" class="img-content">
+      <p>{{parrafos.parrafo4}}</p>
+      <img :src="images.img4" class="img-content">
+      <p>{{parrafos.parrafo5}}</p>
+      <img :src="images.img5" class="img-content">
+      <p>{{parrafos.parrafo6}}</p>
+      <div class="row">
+        <img :src="images.img6" class="img-content col-md-auto">
+        <img :src="images.img7" class="img-content col-md-auto">
+        <img :src="images.img8" class="img-content col-md-auto">
+      </div>
+      <p>{{parrafos.parrafo7}}</p>
+      <img :src="images.img9" class="img-content">
+      <p>{{parrafos.parrafo8}}</p>
+      <img :src="images.img10" class="img-content">
+      <p>{{parrafos.parrafo9}}</p>
+      <img :src="images.img11" class="img-content">
+      <p>{{parrafos.parrafo10}}</p>
+      <div class="row">
+        <img :src="images.img12" class="img-content col-md-auto q-mx-md">
+        <img :src="images.img13" class="img-content col-md-auto">
+      </div>
+      <p>{{parrafos.parrafo11}}</p>
+      <h6 class="q-my-md">Karel Bug</h6>
+      <img :src="images.img14" class="img-content2">
+      <img :src="images.img15" class="img-content">
+      <p>{{parrafos.parrafo12}}</p>
+      <img :src="images.img16" class="img-content">
+      <h6 class="q-my-md">Karel.js</h6>
+      <img :src="images.img17" class="img-content">
+      <h6 class="q-my-md">Karel.exe</h6>
+      <img :src="images.img18" class="img-content">
+    </div>
   </div>
 </template>
 
 <script>
 import { defineComponent } from "vue"
+import textos from 'src/pages/Lessons/Karel/Seccion 2/Leccion 8/textLeccion8'
 export default defineComponent({
   name: 'ks28',
   setup () {
@@ -30,6 +68,16 @@ export default defineComponent({
         img17: require('src/pages/Lessons/Karel/Seccion 2/Leccion 8/Images/image017.png'),
         img18: require('src/pages/Lessons/Karel/Seccion 2/Leccion 8/Images/image018.jpg'),
     }
+    const parrafos = textos()
+    return { images, parrafos }
   }
 })
 </script>
+<style scoped>
+.img-content{
+  height: 170px;
+}
+.img-content2{
+  height: 100px;
+}
+</style>
