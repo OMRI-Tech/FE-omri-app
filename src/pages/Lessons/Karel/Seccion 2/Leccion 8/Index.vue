@@ -1,53 +1,91 @@
 <template>
-  <div class="items-center">
-    <div class="text-justify">
-      <p>{{parrafos.parrafo1}}</p>
+  <div class="items-center text-center">
+    <div>
+      <p class="text-justify first-text">{{parrafos.parrafo1}}</p>
       <img :src="images.img1" class="img-content">
-      <p>{{parrafos.parrafo2}}</p>
+      <p class="text-justify">{{parrafos.parrafo2}}</p>
       <img :src="images.img2" class="img-content">
-      <p>{{parrafos.parrafo3}}</p>
-      <img :src="images.img3" class="img-content">
-      <p>{{parrafos.parrafo4}}</p>
-      <img :src="images.img4" class="img-content">
-      <p>{{parrafos.parrafo5}}</p>
-      <img :src="images.img5" class="img-content">
-      <p>{{parrafos.parrafo6}}</p>
-      <div class="row">
-        <img :src="images.img6" class="img-content col-md-auto">
-        <img :src="images.img7" class="img-content col-md-auto">
-        <img :src="images.img8" class="img-content col-md-auto">
-      </div>
-      <p>{{parrafos.parrafo7}}</p>
+      <p class="text-justify">{{parrafos.parrafo3}}</p>
+      <img :src="images.img3" class="full-width">
+      <p class="text-justify">{{parrafos.parrafo4}}</p>
+      <img :src="images.img4" class="full-width">
+      <p class="text-justify">{{parrafos.parrafo5}}</p>
+      <img :src="images.img5" class="full-width">
+      <p class="text-justify">{{parrafos.parrafo6}}</p>
+      <q-carousel
+        animated
+        v-model="slide_1"
+        arrows
+        infinite
+        control-type="push"
+        class="carousel-content"
+        control-color="primary"
+      >
+        <q-carousel-slide :name="1" :img-src="images.img6">
+        </q-carousel-slide>
+        <q-carousel-slide :name="2" :img-src="images.img7" />
+        <q-carousel-slide :name="3" :img-src="images.img8" />
+      </q-carousel>
+      <q-btn-toggle flat v-model="slide_1" :options="slide_options_1">
+      </q-btn-toggle>
+      <p class="text-justify">{{parrafos.parrafo7}}</p>
       <img :src="images.img9" class="img-content">
-      <p>{{parrafos.parrafo8}}</p>
+      <p class="text-justify">{{parrafos.parrafo8}}</p>
       <img :src="images.img10" class="img-content">
-      <p>{{parrafos.parrafo9}}</p>
+      <p class="text-justify">{{parrafos.parrafo9}}</p>
       <img :src="images.img11" class="img-content">
-      <p>{{parrafos.parrafo10}}</p>
-      <div class="row">
-        <img :src="images.img12" class="img-content col-md-auto q-mx-md">
-        <img :src="images.img13" class="img-content col-md-auto">
+      <p class="text-justify">{{parrafos.parrafo10}}</p>
+      <div class="row full-width bg-white">
+        <img :src="images.img12" class="img-content col q-mx-md">
+        <img :src="images.img13" class="img-content col">
       </div>
-      <p>{{parrafos.parrafo11}}</p>
-      <h6 class="q-my-md">Karel Bug</h6>
-      <img :src="images.img14" class="img-content2">
-      <img :src="images.img15" class="img-content">
-      <p>{{parrafos.parrafo12}}</p>
-      <img :src="images.img16" class="img-content">
-      <h6 class="q-my-md">Karel.js</h6>
-      <img :src="images.img17" class="img-content">
-      <h6 class="q-my-md">Karel.exe</h6>
-      <img :src="images.img18" class="img-content">
+      <p class="text-justify">{{parrafos.parrafo11}}</p>
+      <q-carousel
+        animated
+        v-model="slide_2"
+        arrows
+        infinite
+        control-type="push"
+        class="carousel-content"
+        control-color="primary"
+        v-model:fullscreen="fullscreen"
+      >
+        <q-carousel-slide :name="'Karel Bug'" :img-src="fullscreen ? images.img15_rot : images.img15">
+        </q-carousel-slide>
+        <q-carousel-slide :name="'Karel.js'" :img-src="fullscreen ? images.img17_rot : images.img17 ">
+        </q-carousel-slide>
+        <q-carousel-slide :name="'Karel.exe'" :img-src="fullscreen ? images.img18_rot : images.img18" >
+        </q-carousel-slide>
+        <template v-slot:control>
+          <q-carousel-control
+            position="bottom-right"
+            :offset="[18, 18]"
+          >
+            <q-btn
+              push round dense color="primary" text-color="white"
+              :icon="fullscreen ? 'fullscreen_exit' : 'fullscreen'"
+              @click="fullscreen = !fullscreen"
+            />
+          </q-carousel-control>
+        </template>
+      </q-carousel>
+      <q-btn-toggle flat v-model="slide_2" :options="slide_options_2">
+      </q-btn-toggle>
     </div>
   </div>
 </template>
 
 <script>
-import { defineComponent } from "vue"
+import { defineComponent, onBeforeMount, ref } from "vue"
 import textos from 'src/pages/Lessons/Karel/Seccion 2/Leccion 8/textLeccion8'
+import { useQuasar } from "quasar"
 export default defineComponent({
   name: 'ks28',
-  setup () {
+  setup (props,{emit}) {
+    const $q = useQuasar()
+    onBeforeMount(() => {
+      emit('title', 'El mundo de Karel')
+    })
     const images = {
         img1: require('src/pages/Lessons/Karel/Seccion 2/Leccion 8/Images/image001.png'),
         img2: require('src/pages/Lessons/Karel/Seccion 2/Leccion 8/Images/image002.png'),
@@ -64,12 +102,28 @@ export default defineComponent({
         img13: require('src/pages/Lessons/Karel/Seccion 2/Leccion 8/Images/image013.png'),
         img14: require('src/pages/Lessons/Karel/Seccion 2/Leccion 8/Images/image014.jpg'),
         img15: require('src/pages/Lessons/Karel/Seccion 2/Leccion 8/Images/image015.png'),
+        img15_rot: require('src/pages/Lessons/Karel/Seccion 2/Leccion 8/Images/image015_rot.png'),
         img16: require('src/pages/Lessons/Karel/Seccion 2/Leccion 8/Images/image016.png'),
         img17: require('src/pages/Lessons/Karel/Seccion 2/Leccion 8/Images/image017.png'),
+        img17_rot: require('src/pages/Lessons/Karel/Seccion 2/Leccion 8/Images/image017_rot.png'),
         img18: require('src/pages/Lessons/Karel/Seccion 2/Leccion 8/Images/image018.jpg'),
+        img18_rot: require('src/pages/Lessons/Karel/Seccion 2/Leccion 8/Images/image018_rot.jpg')
     }
     const parrafos = textos()
-    return { images, parrafos }
+    const slide_1 = ref(1)
+    const slide_2 = ref('Karel Bug')
+    const slide_options_2 = [
+      {label: 'Karel Bug', value: 'Karel Bug'},
+      {label: 'Karel.js', value: 'Karel.js'},
+      {label: 'Karel.exe',value: 'Karel.exe'}
+    ]
+    const slide_options_1 = [
+      {label: 'Aplicacion',value: 1},
+      {label: 'Web', value: 2},
+      {label: 'Móviles', value: 3}
+    ]
+    const fullscreen = ref(false)
+    return { images, parrafos, fullscreen, slide_1, slide_2, slide_options_2, slide_options_1 }
   }
 })
 </script>
@@ -79,5 +133,14 @@ export default defineComponent({
 }
 .img-content2{
   height: 100px;
+}
+.custom-caption {
+  text-align: center;
+  padding: 12px;
+  color: white;
+  background-color: rgba(0, 0, 0, .3);
+}
+.first-text {
+  padding-right: 27%;
 }
 </style>
