@@ -7,10 +7,13 @@
 </template>
 
 <script>
-import { defineComponent } from "vue"
+import { defineComponent, onBeforeMount } from "vue"
 export default defineComponent({
   name: 'ks26',
-  setup () {
+  setup ( props, {emit}) {
+    onBeforeMount(() => {
+      emit('title','Introducción a Karel')
+    })
     const images = {
         img1: require('src/pages/Lessons/Karel/Seccion 2/Leccion 6/Images/image001.png'),
         img2: require('src/pages/Lessons/Karel/Seccion 2/Leccion 6/Images/image002.png'),
