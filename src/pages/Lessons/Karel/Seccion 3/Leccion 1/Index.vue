@@ -129,7 +129,4 @@ export default defineComponent({
 .first-content {
   padding-top: 20%;
 }
-.carousel-content{
-  
-}
 </style>
