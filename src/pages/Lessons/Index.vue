@@ -10,7 +10,7 @@ import { useRoute } from 'vue-router'
 // Karel 
   // Seccion 1
 import ks11 from 'pages/Lessons/Karel/Seccion 1/Leccion 1/Index.vue'
-import ks12 from 'pages/Lessons/Karel/Seccion 1/Leccion 2/index.vue'
+import ks12 from 'pages/Lessons/Karel/Seccion 1/Leccion 2/Index.vue'
   // Seccion 2
 import ks26 from 'pages/Lessons/Karel/Seccion 2/Leccion 6/Index.vue'
 import ks27 from 'pages/Lessons/Karel/Seccion 2/Leccion 7/Index.vue'
