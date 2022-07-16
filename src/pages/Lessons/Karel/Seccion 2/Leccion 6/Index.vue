@@ -1,6 +1,6 @@
 <template>
-  <div class="items-center">
-    <div v-for="(image,index) in images" :key="index" class="text-center">
+  <div class="items-center div-padding">
+    <div v-for="(image,index) in images" :key="index" class="text-center bg-white">
       <img :src="image" class="img-content">
     </div>
   </div>
@@ -28,5 +28,8 @@ export default defineComponent({
 .img-content { 
   max-height: 250px;
   max-width: 320px;
+}
+.div-padding {
+  padding-top: 20%;
 }
 </style>
