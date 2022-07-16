@@ -18,13 +18,13 @@
       <img :src="images.img6" class="img-content">
     </div>
     <h4 class="q-my-md">Sintaxis ¿Qué es?</h4>
-    <img :src="images.img8" class="img-content3">
+    <img :src="images.img7" class="img-content3">
     <img :src="images.img8" class="img-content3">
     <div class="row">
       <img :src="images.img9" class="img-content2 col">
       <img :src="images.img9_2" class="img-content col">
     </div>
-    <img :src="images.img10" class="img-content3">
+    <img :src="images.img10" class="img-content">
     <img :src="images.img11" class="img-content3">
     <img :src="images.img12" class="img-content3">
     <img :src="images.img13" class="img-content">
