@@ -36,6 +36,8 @@ export default defineComponent({
     ks12,
     ks26,
     ks27,
+    ks28,
+    ks31,
     cs23
     /**
      * TODO: Añade aqui el componente
