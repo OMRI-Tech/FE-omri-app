@@ -84,7 +84,7 @@ export default defineComponent({
   setup (props,{emit}) {
     const $q = useQuasar()
     onBeforeMount(() => {
-      emit('title', 'El mundo de Karel')
+      emit('title', 'Introducción a Karel')
     })
     const images = {
         img1: require('src/pages/Lessons/Karel/Seccion 2/Leccion 8/Images/image001.png'),

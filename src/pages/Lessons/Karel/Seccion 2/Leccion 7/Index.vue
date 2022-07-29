@@ -20,7 +20,7 @@ export default defineComponent({
   name: 'ks27',
   setup (props,{emit}) {
     onBeforeMount(() => {
-      emit('title','Introducción a Karel Secundaria')
+      emit('title','Introducción a Karel')
     })
     const images = {
         img1: require('src/pages/Lessons/Karel/Seccion 2/Leccion 7/Images/image001.jpg'),

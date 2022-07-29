@@ -80,11 +80,14 @@
 </template>
 
 <script>
-import { defineComponent, ref } from "vue"
+import { defineComponent, onBeforeMount, ref } from "vue"
 import textos from 'src/pages/Lessons/Karel/Seccion 3/Leccion 1/textLeccion1'
 export default defineComponent({
   name: 'ks31',
-  setup () {
+  setup (props, {emit}) {
+    onBeforeMount(() => {
+      emit('title', 'Karelbug')
+    })
     const images = {
         img1: require('src/pages/Lessons/Karel/Seccion 3/Leccion 1/Images/image001.png'),
         img2: require('src/pages/Lessons/Karel/Seccion 3/Leccion 1/Images/image002.png'),
