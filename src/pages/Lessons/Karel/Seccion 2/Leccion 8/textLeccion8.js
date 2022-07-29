@@ -11,7 +11,7 @@ export default (() => {
         parrafo9: 'Karel tiene una mochila que puede utilizar para guardar zumbadores y depositarlos en las esquinas por las que va pasando.',
         parrafo10: 'Puedes ajustar el número inicial de zumbadores en cada esquina haciendo clic izquierdo en la esquina donde lo quieras colocar. Y los puedes eliminar con clic derecho.',
         parrafo11: 'Programando Karel en:',
-        parrafo12: 'Aquí Karel tiene presentación de insecto: ',
+        parrafo12: 'Aquí Karel tiene presentación de insecto.',
     }
     return textos
 })
