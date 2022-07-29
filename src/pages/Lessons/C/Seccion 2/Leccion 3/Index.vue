@@ -22,11 +22,14 @@
 </template>
 
 <script>
-import { defineComponent } from "vue"
+import { defineComponent, onBeforeMount } from "vue"
 import textos from 'src/pages/Lessons/C/Seccion 2/Leccion 3/textLeccion3'
 export default defineComponent({
   name: 'cs23',
-  setup () {
+  setup (props,{emit}) {
+    onBeforeMount(() => {
+      emit('title','¿Qué es el lenguaje C y C++?')
+    })
     const images = {
         CPP_POO: require('src/pages/Lessons/C/Seccion 2/Leccion 3/Images/C ++ POO.png'),
         LenguajeCPP: require('src/pages/Lessons/C/Seccion 2/Leccion 3/Images/Lenguaje C ++.png'),
