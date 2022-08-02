@@ -1,0 +1,108 @@
+$base-bg-color: #003F54
+
+%custom-hf
+  height: 8%
+  background-color: $base-bg-color
+
+%ic-head
+  font-weight: 700
+  font-size: 21.6px
+  line-height: 32px
+
+body
+  background: url("~assets/background/squares.png"), linear-gradient(180deg, #EEFFFF 42.74%, #F7FFF8 93.06%)
+  font-family: url("~assets/fonts/Poppins.ttf")
+  background-position: center bottom
+  background-size: contain
+  background-repeat: repeat-x
+  box-shadow: 0px 4px 31px rgba(227, 227, 227, 0.25)
+
+.ic-footer
+  font-weight: 400
+  font-size: 10px
+  line-height: 15px
+
+.header, .footer
+  @extend %custom-hf
+  & > .q-toolbar
+    height: 100%
+
+.footer
+  border-top-left-radius: 50px
+  border-top-right-radius: 50px
+
+.ic-trophy
+  @extend %ic-head
+  color: #FFD164
+
+.ic-triangle
+  @extend %ic-head
+  color: #FFA100
+
+.ic-heart
+  @extend %ic-head
+  color: #FF4B4B
+
+.main-rectangle
+  background: $base-bg-color
+  border: 3px solid #FFE69F
+  border-radius: 16px
+  width: 95%
+  max-height: 160px
+  margin: 15px auto auto auto
+
+  & > div.info-image
+    padding: 15px
+    width: 30%
+
+  & > div.info-rectangle
+    padding: 15px
+    width: 70%
+
+    & > .txt-title
+      font-weight: 500
+      font-size: 21.6px
+      line-height: 32px
+      color: #FFFFFF
+
+    & > .txt-level
+      font-weight: 400
+      font-size: 10px
+      line-height: 15px
+      color: #92F200
+
+    & > .txt-progress
+      font-weight: 400
+      font-size: 14px
+      line-height: 21px
+      color: #FFFFFF
+
+  @media (max-width: 355px)
+    & > div.info-image
+      display: none
+
+    & > div.info-rectangle
+      width: 100%
+
+// Custom styles for test images
+.squares
+  max-width: 70px
+
+.entrenator
+  max-width: 70px
+  // flip
+  -webkit-transform: scaleX(-1)
+  transform: scaleX(-1)
+
+// Custom linear progress
+.q-linear-progress
+  box-shadow: 0px 3.2px 3.2px rgba(0, 0, 0, 0.25)
+
+.q-linear-progress__model
+  background: linear-gradient(89.94deg, #FC335F 8.96%, #78D1FF 96.47%)
+  border-radius: 10px
+
+.q-linear-progress__track
+  background: #7B7B7B
+  opacity: 1
+  box-shadow: inset 0px 3.2px 3.2px rgba(0, 0, 0, 0.25)
