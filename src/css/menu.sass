@@ -8,6 +8,23 @@ $base-bg-color: #003F54
   font-weight: 700
   font-size: 21.6px
   line-height: 32px
+@mixin on-circle($circle-radius, $manual-angle, $distance, $offset)
+  $rot: -130
+  $angle: (360 / 11)
+  @for $i from 1 through 6
+    &:nth-of-type(#{$i})
+      transform: rotate(#{$rot * 1}deg) translate(#{$circle-radius}px) rotate(#{$rot * -1}deg)
+    $rot: $rot + $angle
+  @for $i from 7 through 9
+    &:nth-of-type(#{$i})
+      transform: translateY(#{$circle-radius + (($i - 9) * $manual-angle)}px) translateX(#{(($i - 7) * -$distance) + $offset}px)
+@mixin include-figure($figure)
+  &.#{$figure}
+    background-image: url("~assets/figures/#{$figure}.png")
+    &.visited
+      background-image: url("~assets/figures/#{$figure}-visited.png")
+    &.done
+      background-image: url("~assets/figures/#{$figure}-done.png")
 
 body
   background: url("~assets/background/squares.png"), linear-gradient(180deg, #EEFFFF 42.74%, #F7FFF8 93.06%)
@@ -84,6 +101,76 @@ body
     & > div.info-rectangle
       width: 100%
 
+.main-container
+  position: absolute
+  height: calc(100% - 100px)
+  width: 100%
+  top: 160px
+  min-width: 300px
+  .vector
+    position: absolute
+    height: 100%
+    width: 100%
+  @for $i from 0 through 3
+    .vector-#{$i}
+      background: url("~assets/background/main-vector-#{$i}.png")
+      background-repeat: no-repeat
+      background-position: bottom
+      transition: background-position linear 4s
+  .entrenator-background
+    background: url("~assets/background/entrenator.png")
+    background-repeat: no-repeat
+    background-size: 65% auto
+    background-position: center
+    .info
+      width: 50%
+      margin: 0 auto
+      text-align: center
+      position: relative
+      top: 45%
+      > p:first-child
+        font-size: 18px
+        padding-top: 10px
+      > p:last-child
+        font-size: 24px
+      > p
+        margin: 0px
+  .path
+    height: 70%
+    top: calc(50% - 39%)
+    background: url("~assets/background/path.png")
+    background-position: center
+    background-repeat: no-repeat
+    background-size: contain
+    background-position-x: right 30px
+    background-position-y: center
+.contenedor-figura
+  height: 70% !important
+  width: 100%
+  top: 12%
+.contenedor-movil
+  max-width: 500px
+  margin: 0 auto
+.figura
+  text-align: center
+  color: white
+  font-weight: bold
+  font-size: 18px
+  padding-top: 8px
+  width: 40px
+  height: 40px
+  background-size: contain
+  background-repeat: no-repeat
+  cursor: pointer
+  position: absolute
+  top: calc(50% - 30px)
+  left: calc(50% - 30px)
+  @include include-figure($figure: 'triangle')
+  @include include-figure($figure: 'circle')
+  @include include-figure($figure: 'hexa')
+  @include include-figure($figure: 'star')
+  @include on-circle($circle-radius: 130, $manual-angle: 4, $distance: 70, $offset: 60)
+
 // Custom styles for test images
 .squares
   max-width: 70px
@@ -106,3 +193,66 @@ body
   background: #7B7B7B
   opacity: 1
   box-shadow: inset 0px 3.2px 3.2px rgba(0, 0, 0, 0.25)
+
+@media(min-width: 325px)
+  .main-container .path
+    height: 60%
+    top: calc(50% - 34%)
+  .figura
+    width: 45px
+    height: 45px 
+    top: calc(50% - 35px)
+    left: calc(50% - 35px)
+    @include on-circle($circle-radius: 140, $manual-angle: 5, $distance: 80, $offset: 60)
+@media(min-width: 345px)
+  .main-container .path
+    height: 70%
+    top: calc(50% - 39%)
+  .figura
+    @include on-circle($circle-radius: 150, $manual-angle: 5, $distance: 83, $offset: 60)
+@media(min-width: 365px)
+  .main-container .path
+    background-position-x: right 45px
+  .figura
+    width: 50px
+    height: 50px  
+    top: calc(50% - 40px)
+    left: calc(50% - 40px)
+    @include on-circle($circle-radius: 160, $manual-angle: 7, $distance: 86, $offset: 60)
+@media(min-width: 385px)
+  .figura
+    @include on-circle($circle-radius: 170, $manual-angle: 5, $distance: 89, $offset: 60)
+@media(min-width: 400px)
+  .main-container .path
+    background-position-x: right 40px
+  .figura  
+    font-size: 24px
+    padding-top: 12px
+    width: 55px
+    height: 55px  
+    top: calc(50% - 45px)
+    left: calc(50% - 45px)
+    @include on-circle($circle-radius: 180, $manual-angle: 5, $distance: 92, $offset: 60)
+
+@media(min-width: 425px)
+  .figura
+    @include on-circle($circle-radius: 190, $manual-angle: 5, $distance: 110, $offset: 80)
+
+@media(min-width: 450px)
+  .main-container .path
+    background-position-x: right 50px
+  .figura
+    @include on-circle($circle-radius: 200, $manual-angle: 5, $distance: 110, $offset: 90)
+@media(min-width: 485px)
+  .figura
+    width: 60px
+    height: 60px  
+    top: calc(50% - 50px)
+    left: calc(50% - 50px)
+    @include on-circle($circle-radius: 212, $manual-angle: 5, $distance: 115, $offset: 90)
+@media(min-width: 500px)
+  .main-container .path
+    height: 80%
+    top: calc(50% - 44%)
+  .figura
+    @include on-circle($circle-radius: 222, $manual-angle: 5, $distance: 115, $offset: 95)

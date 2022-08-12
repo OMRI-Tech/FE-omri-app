@@ -22,8 +22,7 @@
         </div>
       </q-toolbar>
     </q-header>
-
-    <q-page-container>
+    <q-page-container class="contenedor-movil">
       <router-view />
     </q-page-container>
 
