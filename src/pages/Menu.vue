@@ -1,5 +1,5 @@
 <template>
-  <q-page>
+  <q-page class="q-pt-md">
     <div class="main-rectangle row">
       <div class="info-rectangle col">
         <p class="txt-title">Bienvenido olímpico</p>
@@ -90,6 +90,9 @@ export default defineComponent({
       images,
       desplazamiento
     }
+  },
+  mounted () {
+    this.$emit('activeTitle','')
   }
 })
 </script>
