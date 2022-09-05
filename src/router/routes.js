@@ -5,7 +5,8 @@ const routes = [
     path: '/',
     component: () => import('layouts/MenuLayout.vue'),
     children: [
-      { path: 'menu', component: () => import('pages/Menu.vue'), name: 'Home', meta: { auth: true } }
+      { path: 'menu', component: () => import('pages/Menu.vue'), name: 'Home', meta: { auth: true } },
+      { path: 'profile', component: () => import('pages/Profile.vue'), name: 'Profile', meta: { auth: true } }
     ]
   },
   {
