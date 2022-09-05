@@ -12,7 +12,7 @@ module.exports = configure(ctx => ({
   // app boot file (/src/boot)
   // --> boot files are part of "main.js"
   // https://quasar.dev/quasar-cli/boot-files
-  boot: ['axios'],
+  boot: ['config'],
 
   // https://quasar.dev/quasar-cli/quasar-conf-js#Property%3A-css
   css: ['app.sass'],
@@ -35,7 +35,7 @@ module.exports = configure(ctx => ({
   build: {
     // Environment Variables
     env: {
-      baseURL: 'https://www.omri.org.mx/' // Url to make requests
+      baseURL: 'https://www.entrenator-segundo.omri.org.mx/public/' // Url to make requests
     },
     vueRouterMode: 'history', // available values: 'hash', 'history'
 
@@ -80,8 +80,6 @@ module.exports = configure(ctx => ({
 
   // https://quasar.dev/quasar-cli/quasar-conf-js#Property%3A-framework
   framework: {
-    config: {},
-
     // iconSet: 'material-icons', // Quasar icon set
     lang: 'es', // Quasar language pack
 

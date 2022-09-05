@@ -1,12 +1,11 @@
 const routes = [
-  { path: '/registrarse', component: () => import('pages/Register.vue'), name: 'Register', meta: { type: 'auth' } },
-  { path: '/login', component: () => import('pages/Login.vue'), name: 'Login', meta: { type: 'auth' } },
+  { path: '/register', component: () => import('pages/Auth/Register.vue'), name: 'Register', meta: { type: 'auth' } },
+  { path: '/login', component: () => import('pages/Auth/Login.vue'), name: 'Login', meta: { type: 'auth' } },
   {
     path: '/',
     component: () => import('layouts/MenuLayout.vue'),
     children: [
-      { path: '', component: () => import('pages/Index.vue'), name: 'Home', meta: { auth: true } },
-      { path: 'menu', component: () => import('pages/Menu.vue'), name: 'Menu', meta: { auth: true } }
+      { path: 'menu', component: () => import('pages/Menu.vue'), name: 'Home', meta: { auth: true } }
     ]
   },
   {
