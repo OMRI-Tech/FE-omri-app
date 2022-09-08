@@ -51,8 +51,7 @@ body
 .bg-general
   background: linear-gradient(180.06deg, #FFF7E6 17.25%, #F0FFFC 64.55%)
   box-shadow: 0px 4px 31px rgba(227, 227, 227, 0.25)
-.bg-squares
-  background-image: url('assets/background/squares-large.png')
+
 .header-style
   background: #003F54
   font-style: normal
