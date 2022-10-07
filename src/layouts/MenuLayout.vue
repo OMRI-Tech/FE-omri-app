@@ -29,7 +29,7 @@
     <q-footer class="footer">
       <q-toolbar class="justify-center">
         <div v-for="(item, i) in itemsFooter" :key="i" class="q-px-sm col horizontal-center">
-          <q-btn :class="item.title === actualTitle ? 'ic-footer active' : 'ic-footer'" @click="mapeaFunciones(i)" flat stack>
+          <q-btn :class="item.title === actualTitle ? 'ic-footer active' : 'ic-footer'" @click="logout" flat stack>
             <q-icon size="1.5rem" v-if="item.activeImage !== null">
               <q-img :src="item.activeImage" />
             </q-icon>
@@ -43,8 +43,8 @@
 </template>
 
 <script>
-import { defineComponent, ref } from 'vue'
-import { mapActions } from 'vuex'
+import { defineComponent, onBeforeMount, ref } from 'vue'
+import { mapActions, useStore } from 'vuex'
 import 'src/css/menu.sass'
 
 export default defineComponent({
@@ -54,7 +54,16 @@ export default defineComponent({
     const activeTitle = (title) => {
       actualTitle.value = title
     }
+    const store = useStore()
+    onBeforeMount(() => {
+      store.dispatch('auth/fetchUser')
+    })
+    const logout = () => {
+      store.dispatch('auth/logoutFirebase')
+    }
     return {
+      store,
+      logout,
       activeTitle,
       actualTitle,
       itemsFooter: [
@@ -75,7 +84,9 @@ export default defineComponent({
           //this.$router.push({ name: 'Profile' })
           break;
         case 3:
-          this.Logout();
+          alert('bay')
+
+          this.Logout()
           break;
         default:
           break;

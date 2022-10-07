@@ -2,10 +2,10 @@
   <q-page class="q-pt-md">
     <div class="main-rectangle row">
       <div class="info-rectangle col">
-        <p class="txt-title">Bienvenido olímpico</p>
+        <p class="txt-title">Bienvenido {{ user.name }} </p>
         <p class="txt-progress">Progreso</p>
         <q-linear-progress rounded :value="0.3" size="8px" class="q-my-sm" />
-        <p class="txt-level">Intermedio</p>
+        <p class="txt-level">Intermedio {{olimpico}}a</p>
       </div>
       <div class="info-image column inline justify-end">
         <q-img class="q-mx-auto squares" :src="images.squares" spinner-color="white" />
@@ -41,11 +41,15 @@
 </template>
 
 <script>
-import { defineComponent, onMounted, ref } from 'vue'
+import { defineComponent, onMounted, ref, computed } from 'vue'
+import { useStore } from 'vuex'
 
 export default defineComponent({
   name: 'MainMenu',
   setup () {
+    const store = useStore()
+    const user = computed(() => store.getters['auth/user'])
+    let olimpico = computed(() => store.state.auth.olimpico)
     const images = {
       squares: require('assets/img/squares.png'),
       entrenator: require('assets/img/entrenator.png')
@@ -85,10 +89,13 @@ export default defineComponent({
     onMounted(()=>{
       setInterval(animameEsta, 6500)
     })
+
     return {
       direccion,
       images,
-      desplazamiento
+      desplazamiento,
+      user,
+      olimpico
     }
   },
   mounted () {

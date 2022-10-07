@@ -25,21 +25,21 @@
         <div rounded flat class="text-center">
           <div class="q-ma-xs">
             <p class="title-account q-mt-md">Iniciar sesión</p>
-            <!-- <q-btn rounded flat class="button">
+            <q-btn rounded flat class="button">
               <p class="text-button">Registrate con</p>
               <q-icon class="q-ml-sm" size="sm">
                 <img :src="images.logoFacebook" />
               </q-icon>
             </q-btn>
-            <q-btn rounded flat class="button">
+            <!-- q-btn rounded flat class="button">
               <p class="text-button">Registrate con</p>
               <q-icon class="q-ml-sm" size="sm">
                 <img :src="images.logoGoogle" />
               </q-icon>
-            </q-btn> -->
+            </!-->
           </div>
           <!-- <p class="title-account or">- OR -</p> -->
-          <q-form class="form-register" align="center" @submit.prevent="LoginUs(user)">
+          <q-form class="form-register" align="center" @submit.prevent="login()">
             <q-input dense v-model.number="user.telNum" class="q-my-sm text-button col" type="tel" mask="(###)###-####" unmasked-value label="Teléfono" color="teal" :rules="[val => String(val).length >= 10 || (user.email !== null && user.password !== null) || 'Campo no válido']"/>
             <p class="title-account or q-ma-none">- OR -</p>
             <q-input dense v-model="user.email" class="q-my-sm text-button" label="Correo electrónico" color="teal"  :rules="[val => val.trim() !== '' || 'Campo no válido']" />
@@ -74,21 +74,28 @@ export default defineComponent({
       cloudUp: require('assets/img/cloud-up.png'),
       cloudDown: require('assets/img/cloud-down.png')
     }
-    const user = reactive({
+    const user = ref({
       telNum: '',
-      email: '', // 'secundaria@omri.org.mx'
-      password: '' // '9olki87uj',
+      email: 'secundaria@omri.org.mx',
+      password: '9olki87uj',
     })
+    const store = useStore()
 
     const isPwd = ref(true)
     const verification = computed(() => {
-      var valid = (user.name !== '')
-      valid = (valid & (user.email.includes('@') & user.email.includes('.')))
-      valid = (valid & user.password.trim() !== '')
-      valid = (valid | (String(user.telNum).length >= 10))
+      var valid = (user.value.name !== '')
+      valid = (valid & (user.value.email.includes('@') & user.value.email.includes('.')))
+      valid = (valid & user.value.password.trim() !== '')
+      valid = (valid | (String(user.value.telNum).length >= 10))
       return valid == 0
     })
+
+    const login = async () => {
+      console.log('store', store)
+      await store.dispatch('auth/loginFirebase', user.value)
+    }
     return {
+      login,
       user,
       images,
       isPwd,
