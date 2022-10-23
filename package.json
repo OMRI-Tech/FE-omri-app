@@ -1,8 +1,8 @@
 {
   "name": "fe-omri-app",
   "version": "0.0.1",
-  "description": "This a programming training app, aimed to help OMRI's students learng the magic world of programming.",
-  "productName": "OMRI App",
+  "description": "Contribuye a la participación de Morelos en competencias de programación",
+  "productName": "Sorteos OMRI",
   "author": "pronficilio",
   "private": true,
   "scripts": {
