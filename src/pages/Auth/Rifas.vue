@@ -46,7 +46,7 @@
                     <template v-slot:avatar>
                       <img
                         :src="images.entrenator"
-                        style="width: 50px"
+                        style="width: 20px"
                       >
                     </template>
                     ¿Para qué serán destinados los fondos de la rifa?
@@ -196,6 +196,7 @@
 
   export default defineComponent({
     setup () {
+      /// Imagenes usadas en la pagina principal
       const images = {
         logoFacebook: require('assets/logos/facebook.png'),
         logoGoogle: require('assets/logos/google.png'),
@@ -211,15 +212,21 @@
         car3: require('assets/carousel/3.png'),
         car4: require('assets/carousel/4.png')
       }
+      /// Datos recopilados para la rifa
       const user = ref({
         name: '',
         email: '',
         telNum: ''
       })
+      /// Pasos para adquirir un boleto
       const step = ref(1)
+      /// Link del pago
       const link = ref("")
+      /// Tiene los 3 dígitos del sorteo
       const folio = ref('')
+      /// Motivos del sorteo
       const dialogExplicacion = ref(false)
+      /// para mini tutorial del programa
       const dialogHowto = ref(false)
       const muestradialog = () => {
         dialogExplicacion.value = true;
