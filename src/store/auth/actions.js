@@ -20,14 +20,10 @@ export function Login ({}, params) {
       if (response.status === 1) {
         token = response.access_token
         user = response.data
+        API.Utils.Notifica('¡Sesión Iniciada!', `Bienvenido ${user.name}!`, true, 'top')
+      } else {
+        API.Utils.Notifica('¡Contraseña Incorrecta!', `La contraseña no coincide, vuelve a intentarlo`, false, 'top')
       }
-
-      Notify.create({
-        message: token === null ? '¡Contraseña Incorrecta!' : '¡Sesión Iniciada!',
-        caption: token === null ? 'La contraseña no coincide, vuelve a intentarlo' : `Bienvenido ${user.name}!`,
-        avatar: require('assets/img/entrenator.png'),
-        color: token === null ? 'info' : 'positive'
-      })
       if (token !== null) {
         axios.defaults.headers.common.Authorization = 'Bearer ' + token
         LocalStorage.set('user_logged', user)
@@ -39,25 +35,14 @@ export function Login ({}, params) {
     error => {
       const noServerError = error.status === 422
       console.error(error)
-      Notify.create({
-        message: 'Ocurrió un error 43',
-        caption: !noServerError ? 'Intenta más tarde' : 'No pudimos encontrar tu usuario',
-        avatar: require('assets/img/entrenator.png'),
-        color: !noServerError ? 'negative' : 'info',
-        // classes: 'horizontal-center'
-      })
+      API.Utils.Notifica('Ocurrió un error 38', !noServerError ? 'Intenta más tarde' : 'No pudimos encontrar tu usuario', false, 'top')
     }
   )
 }
 
 export function Logout () {
   LocalStorage.clear()
-  Notify.create({
-    message: 'Sesión cerrada',
-    caption: 'Tu sesión se cerró exitósamente, vuelve pronto',
-    avatar: require('assets/img/entrenator.png'),
-    color: 'positive'
-  })
+  API.Utils.Notifica('Sesión cerrada', 'Tu sesión se cerró exitósamente, vuelve pronto', true, 'top')
   this.$router.push({ name: 'Login' })
 }
 
@@ -119,23 +104,14 @@ export async function loginFirebase ({ commit }, details) {
           /// se actualiza contraseña y firebase
           realLogin(commit, userDB, user, token, formData)
         }
-        Notify.create({
-          message: token === null ? '¡Contraseña Incorrecta!' : '¡Sesión Iniciada!',
-          caption: token === null ? 'La contraseña no coincide, vuelve a intentarlo' : `Bienvenido ${user.name}!`,
-          avatar: require('assets/img/entrenator.png'),
-          color: token === null ? 'info' : 'positive'
-        })
+        API.Utils.Notifica(token === null ? '¡Contraseña Incorrecta!' : '¡Sesión Iniciada!',
+          token === null ? 'La contraseña no coincide, vuelve a intentarlo' : `Bienvenido ${user.name}!`,
+          token === null, 'top')
       },
       error => {
         const noServerError = error.status === 422
         console.error(error)
-        Notify.create({
-          message: 'Ocurrió un error al iniciar sesión 128',
-          caption: !noServerError ? 'Intenta más tarde' : 'No pudimos encontrar tu usuario',
-          avatar: require('assets/img/entrenator.png'),
-          color: !noServerError ? 'negative' : 'info',
-          // classes: 'horizontal-center'
-        })
+        API.Utils.Notifica('Ocurrió un error 128', !noServerError ? 'Intenta más tarde' : 'No pudimos encontrar tu usuario', false, 'top')
       }
     )
   }).catch((error) => {
@@ -345,13 +321,7 @@ export async function logoutFirebase ({ commit }) {
   await signOut(auth)
   LocalStorage.clear()
   commit('CLEAR_USER')
-
-  Notify.create({
-    message: 'Sesión cerrada',
-    caption: 'Tu sesión se cerró exitósamente, vuelve pronto',
-    avatar: require('assets/img/entrenator.png'),
-    color: 'positive'
-  })
+  API.Utils.Notifica('Sesión cerrada', 'Tu sesión se cerró exitósamente, vuelve pronto', true, 'top')
 
   this.$router.push({ name: 'Login' })
 }
@@ -367,4 +337,122 @@ export function fetchUser ({ commit }) {
       }
     }
   })
+}
+
+export async function searchUser ({ commit }, details) {
+  const { telefono, callback } = details
+  await API.Request.Get(
+    'Buscando olímpico por teléfono...',
+    API.Model('Auth').encuentraAlumno,
+    { telefono: telefono },
+    response => {
+      if (response.status === 1 && response.data.length > 0) {
+        console.log(response)
+        callback(response.data)
+      } else {
+        API.Utils.Notifica('No se encontró ningun usuario con ese teléfono', 'Comprueba que escribiste bien el teléfono o inicia sesión con tu correo', false, 'top')
+      }
+    }
+  )
+}
+
+export async function enviaOTP ({ commit }, details) {
+  const { user } = details
+  await API.Request.Get(
+    'Enviando contraseña por WhatsApp',
+    API.Model('Auth').otpLogin + user,
+    { },
+    response => {
+      API.Utils.Notifica('Se envió la contraseña por WhatsApp', 'Revisa tu WhatsApp y escribe el código que te llegó', true, 'top')
+    }
+  )
+}
+
+export async function actualizaDatosPersonales ({}, details) {
+  const { user, callback } = details
+  const formData = new FormData()
+  for (var key in user) {
+    if(user[key] !== null)
+      formData.append(key, user[key])
+  }
+  console.log(user)
+  await API.Request.Post(
+    'Actualizando datos del olímpico',
+    API.Model('Auth').updateUser + user.id,
+    formData,
+    response => {
+      if (response.status === 1) {
+        API.Utils.Notifica('Todo está guardado', 'Tu información está actualizada', true, 'top')
+        LocalStorage.set('user_logged', response.data)
+        LocalStorage.set('api_token', response.access_token)
+        LocalStorage.set('avatar', response.data.avatar)
+        if (typeof callback === 'function') {
+          callback()
+        }
+        console.log('------------')
+        console.log(response.data)
+      }
+    }
+  )
+}
+
+export async function actualizaVidas () {
+  const user = LocalStorage.getItem('user_logged')
+  await API.Request.Get(
+    'Recuperando vidas',
+    API.Model('Auth').vidas + user.id,
+    {},
+    response => {
+      if (response.status === 1) {
+        LocalStorage.set('vidas', response.vida.cnt)
+      }
+    }
+  )
+  await API.Request.Get(
+    'Actualizando niveles',
+    API.Model('Auth').dameProgreso,
+    {
+      user_id: user.id
+    },
+    levels => {
+      console.log('se reciben niveles 418', levels)
+      if(levels.status === 1){
+        LocalStorage.set('niveles', levels.niveles)
+      }
+    }
+  )
+}
+
+export async function marcaProgreso ({}, details) {
+  const {step, nivel_id, user_id} = details
+  await API.Request.Post(
+    'Guardando progreso',
+    API.Model('Auth').marcaProgreso,
+    {
+      step: step,
+      nivel_id: nivel_id,
+      user_id: user_id
+    },
+    response => {
+      API.Request.Get(
+        'Actualizando niveles',
+        API.Model('Auth').dameProgreso,
+        {
+          user_id: user_id
+        },
+        levels => {
+          console.log('se reciben niveles', levels)
+          if(response.status === 1){
+            LocalStorage.set('niveles', levels.niveles)
+            API.Utils.Notifica('', 'Progreso guardado', true, 'top')
+          }
+        }
+      )
+    }
+  )
+}
+
+export function notifica({ }, details){
+  const { title, msg, type } = details
+  API.Utils.Notifica(title, msg, type, 'top')
 }
