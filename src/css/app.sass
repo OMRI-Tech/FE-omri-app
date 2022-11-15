@@ -24,10 +24,42 @@ img
 
 .bg-squares
   background-image: url('assets/background/squares-large.png')
-  
-.q-notification
-  min-width: 80%
-  border-radius: 16px 
+
+.q-notification.entrenator-notify
+  width: 450px
+  max-width: 90%
+  background-size: 100% 100%
+  background-color: transparent
+  border: 0px
+  box-shadow: none
+  &.dialog-error
+    background-image: url('assets/background/dialog-error.png')
+  &.dialog-success
+    background-image: url('assets/background/dialog-success.png')
+  .q-notification__avatar
+    width: 0px
+    height: auto
+    border-radius: 0
+    left: -100px
+    top: 70px
+    .q-avatar__content
+      width: 90px
+  .q-notification__content
+    align-items: flex-end
+    .q-notification__message
+      padding-bottom: 15px
+      align-self: normal
+      div:first-child
+        font-size: 32px
+        text-align: center
+      div:last-child
+        opacity: 1
+        text-align: center
+        font-size: 22px
+
+  .q-notification__badge
+    display: none
+
 
 @font-face
   font-family: Poppins
