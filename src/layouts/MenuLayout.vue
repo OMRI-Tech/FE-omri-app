@@ -6,30 +6,30 @@
           <q-icon size="1.5rem">
             <q-img src="~assets/icons/trophy.svg" />
           </q-icon>
-          22
+          0
         </div>
         <div class="q-px-md ic-triangle">
           <q-icon size="1.5rem">
             <q-img src="~assets/icons/triangle.svg" />
           </q-icon>
-          13
+          --
         </div>
         <div class="q-px-md ic-heart">
           <q-icon size="1.5rem">
             <q-img src="~assets/icons/heart.svg" />
           </q-icon>
-          5
+          {{ vidas }}
         </div>
       </q-toolbar>
     </q-header>
     <q-page-container class="contenedor-movil">
-      <router-view @activeTitle="activeTitle" />
+      <router-view @activeTitle="activeTitle" @actualizaVidas="actualizaVidas" />
     </q-page-container>
 
-    <q-footer class="footer">
+    <q-footer class="footer contenedor-movil">
       <q-toolbar class="justify-center">
         <div v-for="(item, i) in itemsFooter" :key="i" class="q-px-sm col horizontal-center">
-          <q-btn :class="item.title === actualTitle ? 'ic-footer active' : 'ic-footer'" @click="logout" flat stack>
+          <q-btn :class="item.title === actualTitle ? 'ic-footer active' : 'ic-footer'" @click="item.click" flat stack>
             <q-icon size="1.5rem" v-if="item.activeImage !== null">
               <q-img :src="item.activeImage" />
             </q-icon>
@@ -43,34 +43,55 @@
 </template>
 
 <script>
-import { defineComponent, onBeforeMount, ref } from 'vue'
+import { defineComponent, onBeforeMount, ref, computed } from 'vue'
 import { mapActions, useStore } from 'vuex'
+import { useRouter } from 'vue-router'
+import Store from 'src/store'
 import 'src/css/menu.sass'
 
 export default defineComponent({
   name: 'MenuLayout',
   setup () {
+    const store = useStore()
+    store.dispatch('auth/actualizaVidas')
+    const router = useRouter()
+    const vidas = ref(0)
     const actualTitle = ref()
     const activeTitle = (title) => {
       actualTitle.value = title
+      console.log('active title con esto: ', title)
     }
-    const store = useStore()
+    const actualizaVidas = () => {
+      store.dispatch('auth/actualizaVidas').then(() => {
+        vidas.value = Store().getters['auth/vidas']
+      })
+    }
     onBeforeMount(() => {
-      store.dispatch('auth/fetchUser')
+      actualizaVidas()
+      //store.dispatch('auth/fetchUser')
     })
     const logout = () => {
       store.dispatch('auth/logoutFirebase')
+      //console.error('nos fuimos de aqui falsamente')
     }
+    const verPerfil = () => {
+      router.push({ name: 'Profile' })
+    }
+    const verMenu = () => {
+      router.push({ name: 'Home' })
+    }
+
     return {
       store,
+      vidas,
       logout,
       activeTitle,
+      actualizaVidas,
       actualTitle,
       itemsFooter: [
-        { title: 'Profile', activeImage: require('assets/icons/out_profile.svg'), regularImage: ''},
-        { title: 'Ranking', activeImage: require('assets/icons/out_ranking.svg'), regularImage: ''},
-        { title: 'Calendar', activeImage: require('assets/icons/out_calendar.svg'), regularImage: ''},
-        { title: 'Salir', activeImage: null, icon: "logout", regularImage: '' }
+        { title: 'Mi perfil', activeImage: require('assets/icons/out_profile.svg'), regularImage: '', click: verPerfil},
+        { title: 'Menú', activeImage: require('assets/icons/out_ranking.svg'), regularImage: '', click: verMenu},
+        { title: 'Salir', activeImage: null, icon: "logout", regularImage: '', click: logout }
       ]
     }
   },
