@@ -13,24 +13,7 @@ export default route(function (/* { store, ssrContext } */) {
     history: createHistory(process.env.MODE === 'ssr' ? void 0 : process.env.VUE_ROUTER_BASE)
   })
 
-  /*Router.beforeEach((to, from, next) => {
-    console.log(to, from)
-    console.log('permiso 1', auth.currentUser, !auth.currentUser)
-    if (to.matched.some(record => record.meta.auth)) {
-      //console.log('permiso 2')
-      (Store().getters['auth/isLogged'] || auth.currentUser) ? next() : next({ name: 'Login' })
-    } else {
-      //console.log('permiso 3', !Store().getters['auth/isLogged'], !auth.currentUser)
-      if (to.matched.some(record => record.meta.type === 'auth')) {
-        (!Store().getters['auth/isLogged'] || !auth.currentUser) ? next() : next({ name: 'Home' })
-      } else {
-        //console.log('permiso 5')
-        if (to.fullPath === '/') next({ name: 'Home' })
-        else next()
-      }
-    }
-  })*/
-  /*Router.beforeEach((to, from, next) => {
+  Router.beforeEach((to, from, next) => {
     if (to.matched.some(record => record.meta.auth)) {
       Store().getters['auth/isLogged'] ? next() : next({ name: 'Login' })
     } else {
@@ -41,7 +24,7 @@ export default route(function (/* { store, ssrContext } */) {
         else next()
       }
     }
-  })*/
+  })
 
   return Router
 })

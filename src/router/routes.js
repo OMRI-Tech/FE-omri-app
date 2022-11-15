@@ -6,18 +6,13 @@ const routes = [
     meta: { type: 'auth' }
   },
   {
-    path: '/:origen?',
-    component: () => import('pages/Auth/RegisterLogin.vue'),
-    name: 'OMRI'
-  },
-  {
     path: '/login',
     component: () => import('pages/Auth/Login.vue'),
     name: 'Login',
     meta: { type: 'auth' }
   },
   {
-    path: '/fake',
+    path: '/',
     component: () => import('layouts/MenuLayout.vue'),
     children: [
       {
