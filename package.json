@@ -1,8 +1,8 @@
 {
   "name": "fe-omri-app",
-  "version": "0.0.1",
-  "description": "Contribuye a la participación de Morelos en competencias de programación",
-  "productName": "Sorteos OMRI",
+  "version": "4.0.1",
+  "description": "Plataforma de entrenamiento de la OMRI",
+  "productName": "Entrenator",
   "author": "pronficilio",
   "private": true,
   "scripts": {
