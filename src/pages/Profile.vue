@@ -1,219 +1,249 @@
 <template>
   <q-page class="q-pt-md">
     <div class="text-center col-12">
-        <q-avatar size="100px">
+        <!-- <q-avatar size="100px">
             <q-img :src="user.avatar"/>
         </q-avatar>
         <br/>
-        <q-btn icon="backup" label="Sube una selfie" class="q-mt-sm" rounded color="info"  @click="profilephoto = true" size="sm"/>
+        <q-btn icon="backup" label="Sube una selfie" class="q-mt-sm" rounded color="info"  @click="profilephoto = true" size="sm"/> -->
+        <q-tabs
+          v-model="tab"
+          dense
+          class="text-grey main-rectangle"
+          active-color="white"
+          indicator-color="white"
+          align="justify"
+          narrow-indicator
+        >
+          <q-tab name="personal">
+            Personales <q-icon name="warning" color="warning" v-if="verificaPersonal" />
+          </q-tab>
+          <!-- <q-tab name="olimpico" label="Olímpico" /> -->
+          <q-tab name="escolares">
+            Escolares <q-icon name="warning" color="warning" v-if="verificaEscolar" />
+          </q-tab>
+          <!-- <q-tab name="escolares" label="Contraseña" /> -->
+        </q-tabs>
     </div>
-    <div class="main-container overflow-auto">
-      <div class="row">
+    <div class="main-container overflow-auto" style="top: 80px">
+      <div class="">
         <div>
           <q-card class="bg-squares">
             <q-card-section class="q-pa-sm">
-              <q-list>
-                <q-item-label class="text-h6" header>Datos personales</q-item-label>
-                <q-item>
-                  <q-item-section>
-                    <q-input dense standout v-model="user.name" placeholder="Naranjín" hint="Nombre *"/>
-                  </q-item-section>
-                </q-item>
-                <q-item>
-                  <q-item-section>
-                    <q-input dense standout v-model="user.lastname" placeholder="Naranjos" hint="Apellido Paterno *"/>
-                  </q-item-section>
-                </q-item>
-                <q-item>
-                  <q-item-section>
-                    <q-input dense standout v-model="user.mother_lastname" placeholder="Del Río" hint="Apellido Materno"/>
-                  </q-item-section>
-                </q-item>
-                <q-item>
-                  <q-item-section>
-                    <q-input dense standout type="date" v-model="user.fecha_nacimiento" hint="Fecha de nacimiento *"/>
-                  </q-item-section>
-                  <q-item-section>
-                    <q-input dense standout mask="(###)-###-####" unmasked-value fill-mask autogrow v-model="user.telefono" hint="Teléfono *"/>
-                  </q-item-section>
-                </q-item>
-                <q-item>
-                  <q-item-section>
-                    <q-input dense standout v-model="user.email" placeholder="naranjin@gmail.com" hint="Correo *"/>
-                  </q-item-section>
-                </q-item>
-                <q-item
-                  clickable
-                  v-ripple
-                  class="text-center"
-                >
-                  <q-item-section>
-                    <q-btn no-caps class="full-width bg-primary text-white" label="Guardar cambios" />
-                  </q-item-section>
-                </q-item>
-              </q-list>
-              <q-list>
-                <q-separator spaced />
-                <q-item-label class="text-h6" header>Datos de olímpico</q-item-label>
-                <q-item>
-                  <q-item-section>
-                    <q-input
-                      type="textarea"
-                      dense standout
-                      v-model="user.acercaDeMi"
-                      placeholder="Vengo a aprender programación, me gusta leer y ¿quien para el Fortnite?"
-                      hint="Deja que otros sepan algo de ti"/>
-                  </q-item-section>
-                </q-item>
-                <q-item>
-                  <q-item-section>
-                    <q-input dense standout v-model="user.omegaup_user" placeholder="NombreDeUsuario" hint="Usuario de OmegaUp"/>
-                  </q-item-section>
-                </q-item>
-                <q-item>
-                  <q-item-section>
-                    <q-input
-                      dense standout
-                      v-model="user.omegaPass"
-                      :type="isPwd ? 'password' : 'text'"
-                      hint="Contraseña de OmegaUp (muy opcional)"
-                      placeholder="Para que no se te pierda">
-                      <template v-slot:append>
-                        <q-icon
-                          :name="isPwd ? 'visibility_off' : 'visibility'"
-                          class="cursor-pointer"
-                          @click="isPwd = !isPwd"
-                        />
-                        <q-btn round dense flat icon="add" />
-                      </template>
-                    </q-input>
-                  </q-item-section>
-                </q-item>
-                <q-item
-                  clickable
-                  v-ripple
-                  class="text-center"
-                >
-                  <q-item-section>
-                    <q-btn no-caps class="full-width bg-primary text-white" label="Guardar cambios" />
-                  </q-item-section>
-                </q-item>
-              </q-list>
-              <q-list>
-                <q-separator spaced />
-                <q-item-label class="text-h6" header>Datos escolares</q-item-label>
-                <q-item>
-                  <q-item-section>
-                    <q-select
-                        autogrow
-                        dense standout
-                        v-model="product.estado"
-                        :options="options.estado"
-                        stack-label
-                        @filter="filtroestado"
-                        placeholder="Escuelita"
-                        hint="Escoge un Escuela *"
-                        :display-value="`${product.estado && product.estado.label ? product.estado.label : ''}`"
-                        :display-value-sanitize="display.estado"
-                        :rules="[val => !!val || 'Campo Obligatorio']"
-                    ></q-select>
-                  </q-item-section>
-                </q-item>
-                <q-item>
-                  <q-item-section>
-                    <q-select
-                        autogrow
-                        dense standout
-                        v-model="product.estado"
-                        :options="options.estado"
-                        stack-label
-                        @filter="filtroestado"
-                        placeholder="Morelos"
-                        hint="Escoge un Estado *"
-                        :display-value="`${product.estado && product.estado.label ? product.estado.label : ''}`"
-                        :display-value-sanitize="display.estado"
-                        :rules="[val => !!val || 'Campo Obligatorio']"
-                    ></q-select>
-                  </q-item-section>
-                </q-item>
-                <q-item>
-                  <q-item-section>
-                    <q-select
-                        autogrow
-                        dense standout
-                        v-model="product.municipio"
-                        :options="options.municipio"
-                        stack-label
-                        @filter="filtromunicipio"
-                        hint="Escoge un Municipio"
-                        placeholder="Cuernavaca"
-                        :display-value="`${product.municipio && product.municipio.label ? product.municipio.label : ''}`"
-                        :display-value-sanitize="display.municipio"
-                        :rules="[val => val || 'Campo Obligatorio']"
-                    ></q-select>
-                  </q-item-section>
-                </q-item>
-                <q-item>
-                  <q-item-section>
-                    <q-select
-                        dense standout
-                        autogrow
-                        v-model="user.id_grado"
-                        :options="opcionesGrado"
-                        stack-label
-                        hint="Grado escolar"
-                        :rules="[val => val || 'Campo Obligatorio']"
+              <q-tab-panels v-model="tab" animated>
+                <q-tab-panel name="personal">
+                  <q-form @submit.prevent="actualizaAlumno()">
+                    <q-list>
+                      <q-item-label class="text-h6" header>
+                        Datos personales
+                      </q-item-label>
+                      <q-item>
+                        <q-item-section>
+                          <q-input dense standout v-model="user.name" placeholder="Naranjín" hint="Nombre *"/>
+                        </q-item-section>
+                      </q-item>
+                      <q-item>
+                        <q-item-section>
+                          <q-input dense standout v-model="user.lastname" placeholder="Naranjos" hint="Apellido Paterno *"/>
+                        </q-item-section>
+                        <q-item-section>
+                          <q-input dense standout v-model="user.mother_lastname" placeholder="Del Río" hint="Apellido Materno"/>
+                        </q-item-section>
+                      </q-item>
+                      <q-item>
+                        <q-item-section>
+                          <q-input dense standout type="date" v-model="user.fecha_nacimiento" hint="Fecha de nacimiento *"/>
+                        </q-item-section>
+                        <q-item-section>
+                          <q-input dense standout mask="(###)-###-####" unmasked-value fill-mask autogrow v-model="user.telefono" hint="Teléfono *"/>
+                        </q-item-section>
+                      </q-item>
+                      <q-item>
+                        <q-item-section>
+                          <q-input dense standout v-model="user.email" placeholder="naranjin@gmail.com" hint="Correo *"/>
+                        </q-item-section>
+                      </q-item>
+                      <q-item>
+                        <q-item-section>
+                          <q-input
+                            type="textarea"
+                            dense standout
+                            v-model="user.acercaDeMi"
+                            placeholder="Vengo a aprender programación, me gusta leer y ¿quien para el Fortnite?"
+                            rows="2"
+                            hint="Deja que otros sepan algo de ti"/>
+                        </q-item-section>
+                      </q-item>
+                      <q-item
+                        clickable
+                        v-ripple
+                        class="text-center"
+                      >
+                        <q-item-section>
+                          <q-btn no-caps type="submit" class="full-width bg-primary text-white" label="Guardar cambios" :disable="verificaPersonal" />
+                        </q-item-section>
+                      </q-item>
+                    </q-list>
+                  </q-form>
+                </q-tab-panel>
+                <!-- <q-tab-panel name="olimpico">
+                  <q-list>
+                    <q-separator spaced />
+                    <q-item-label class="text-h6" header>Datos de olímpico</q-item-label>
+                    <q-item>
+                      <q-item-section>
+                        <q-input
+                          type="textarea"
+                          dense standout
+                          v-model="user.acercaDeMi"
+                          placeholder="Vengo a aprender programación, me gusta leer y ¿quien para el Fortnite?"
+                          hint="Deja que otros sepan algo de ti"/>
+                      </q-item-section>
+                    </q-item>
+                    <q-item>
+                      <q-item-section>
+                        <q-input dense standout v-model="user.omegaup_user" placeholder="NombreDeUsuario" hint="Usuario de OmegaUp"/>
+                      </q-item-section>
+                    </q-item>
+                    <q-item>
+                      <q-item-section>
+                        <q-input
+                          dense standout
+                          v-model="user.omegaPass"
+                          :type="isPwd ? 'password' : 'text'"
+                          hint="Contraseña de OmegaUp (muy opcional)"
+                          placeholder="Para que no se te pierda">
+                          <template v-slot:append>
+                            <q-icon
+                              :name="isPwd ? 'visibility_off' : 'visibility'"
+                              class="cursor-pointer"
+                              @click="isPwd = !isPwd"
+                            />
+                            <q-btn round dense flat icon="add" />
+                          </template>
+                        </q-input>
+                      </q-item-section>
+                    </q-item>
+                    <q-item
+                      clickable
+                      v-ripple
+                      class="text-center"
                     >
-                    </q-select>
-                  </q-item-section>
-                </q-item>
-                <q-item
-                  clickable
-                  v-ripple
-                  class="text-center"
-                >
-                  <q-item-section>
-                    <q-btn no-caps class="full-width bg-primary text-white" label="Guardar cambios" />
-                  </q-item-section>
-                </q-item>
-              </q-list>
-              <q-list>
-                <q-separator spaced />
-                <q-item-label class="text-h6" header>Cambia contraseña</q-item-label>
-                <q-item>
-                  <q-item-section>
-                    Nueva Contraseña
-                  </q-item-section>
-                </q-item>
-                <q-item>
-                  <q-item-section>
-                    <q-input type="password" dense outlined round v-model="password.nueva" label="Nueva contraseña" :rules="[val => !!val || 'Campo Obligatorio']"/>
-                  </q-item-section>
-                </q-item>
-                <q-item>
-                  <q-item-section>
-                    Confirmación de contrasñea
-                  </q-item-section>
-                </q-item>
-                <q-item>
-                  <q-item-section>
-                    <q-input type="password" dense outlined round v-model="password.confirmacion" label="Confirma nueva contraseña" :rules="[val => !!val || 'Campo Obligatorio']"/>
-                  </q-item-section>
-                </q-item>
-                <q-item
-                  clickable
-                  v-ripple
-                  class="text-center"
-                >
-                  <q-item-section>
-                    <q-btn no-caps class="full-width bg-primary text-white" label="Guardar cambios" />
-                  </q-item-section>
-                </q-item>
+                      <q-item-section>
+                        <q-btn no-caps class="full-width bg-primary text-white" label="Guardar cambios" />
+                      </q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-tab-panel> -->
+                <q-tab-panel name="escolares">
+                  <q-form @submit.prevent="actualizaEscolares()">
+                    <q-list>
+                      <q-separator spaced />
+                      <q-item-label class="text-h6" header>Datos escolares</q-item-label>
+                      <q-item>
+                        <q-item-section>
+                          <div v-if="!muestraNuevaEscuela">
+                            <q-select
+                              dense standout
+                              v-model="modelEscuela"
+                              :options="optionsEscuela"
+                              @filter="filterEscuela"
+                              use-input
+                              label="Selecciona una escuela"
+                              hint="Escribe para buscar tu escuela por nombre"
+                              :rules="[val => !!val || 'Campo obligatorio']"
+                            >
+                              <template v-slot:no-option>
+                                <q-item>
+                                  <q-item-section class="text-italic text-grey">
+                                    <p class="q-mb-none q-mt-none">Presiona la tecla Enter para agregar esta escuela</p>
+                                  </q-item-section>
+                                </q-item>
+                              </template>
+                            </q-select>
+                            <q-btn @click="nuevaEscuela()" color="blue" no-caps flat dense type="button" label="No encuentro mi escuela :c"/>
+                          </div>
+                          <div v-else>
+                            <q-input dense standout v-model="nuevaEscuelaModel" placeholder="Secundaria Técnica 114" hint="Nombre *"/>
+                            <q-btn @click="nuevaEscuela()" color="blue" no-caps flat dense type="button" label="Buscar escuela"/>
+                          </div>
+                        </q-item-section>
+                      </q-item>
+                      <q-item>
+                        <q-item-section>
+                          <q-select
+                              dense standout
+                              v-model="modelMunicipio"
+                              :options="optionsMunicipio"
+                              @filter="filterMunicipio"
+                              hint="Municipio donde vives"
+                              :rules="[val => val || 'Campo Obligatorio']"
+                          ></q-select>
+                        </q-item-section>
+                      </q-item>
+                      <q-item>
+                        <q-item-section>
+                          <q-select
+                              dense standout
+                              v-model="modelGrado"
+                              :options="opcionesGrado"
+                              hint="Grado escolar"
+                              :rules="[val => val || 'Campo Obligatorio']"
+                          >
+                          </q-select>
+                        </q-item-section>
+                      </q-item>
+                      <q-item
+                        clickable
+                        v-ripple
+                        class="text-center"
+                      >
+                        <q-item-section>
+                          <q-btn type="submit" no-caps class="full-width bg-primary text-white" label="Guardar cambios" :disable="verificaEscolar" />
+                        </q-item-section>
+                      </q-item>
+                    </q-list>
+                  </q-form>
+                </q-tab-panel>
+                <q-tab-panel name="contra">
+                  <q-list>
+                    <q-separator spaced />
+                    <q-item-label class="text-h6" header>Cambia contraseña</q-item-label>
+                    <q-item>
+                      <q-item-section>
+                        Nueva Contraseña
+                      </q-item-section>
+                    </q-item>
+                    <q-item>
+                      <q-item-section>
+                        <q-input type="password" dense outlined round v-model="password.nueva" label="Nueva contraseña" :rules="[val => !!val || 'Campo Obligatorio']"/>
+                      </q-item-section>
+                    </q-item>
+                    <q-item>
+                      <q-item-section>
+                        Confirmación de contrasñea
+                      </q-item-section>
+                    </q-item>
+                    <q-item>
+                      <q-item-section>
+                        <q-input type="password" dense outlined round v-model="password.confirmacion" label="Confirma nueva contraseña" :rules="[val => !!val || 'Campo Obligatorio']"/>
+                      </q-item-section>
+                    </q-item>
+                    <q-item
+                      clickable
+                      v-ripple
+                      class="text-center"
+                    >
+                      <q-item-section>
+                        <q-btn no-caps class="full-width bg-primary text-white" label="Guardar cambios" />
+                      </q-item-section>
+                    </q-item>
 
-              </q-list>
+                  </q-list>
+                </q-tab-panel>
+              </q-tab-panels>
             </q-card-section>
             <q-card-actions align="right">
-              <q-btn @click="updateProfile" class="text-capitalize bg-info">Actualizar Información</q-btn>
             </q-card-actions>
 
             <q-form @submit.prevent="ChangePass">
@@ -256,7 +286,9 @@
   </q-page>
 </template>
 <script>
-import { defineComponent, ref } from 'vue'
+import { defineComponent, ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useStore } from 'vuex'
 import * as API from 'src/store/Api'
 import { LocalStorage } from 'quasar'
 import axios from 'axios'
@@ -264,10 +296,31 @@ import axios from 'axios'
 export default defineComponent({
   name: 'Profile',
   setup () {
-    const Usuario = LocalStorage.getItem('user_logged')
-    console.log('user: ', LocalStorage.getItem('user_logged'))
-    const isPwd = ref(true);
-    const user = ref(Usuario);
+    const store = useStore()
+    let Usuario = LocalStorage.getItem('user_logged')
+    const router = useRouter()
+    console.log(Usuario)
+    // Manejador de tabs
+    const tab = ref('personal')
+    // objeto de usuario
+    const user = ref(Usuario)
+    // Model seleccionador de escuela
+    const modelEscuela = ref(Usuario.escuela === null ? null : {value: Usuario.escuela.id, label: Usuario.escuela.nombre})
+    // Model seleccionador de municipio
+    const modelMunicipio = ref(Usuario.muni === null ? null : {value: Usuario.muni.id, label: Usuario.muni.nombre})
+    // Model seleccionador de grado
+    const modelGrado = ref(Usuario.grado === null ? null : {value: Usuario.grado.id, label: Usuario.grado.name})
+    // Model para escribir unan ueva escuela
+    const nuevaEscuelaModel = ref('')
+    // Controla visibilidad de contraseña en seccion de olímpico
+    // const isPwd = ref(true);
+    // Controla visibilidad de agregar nueva escuela
+    const muestraNuevaEscuela = ref(false)
+    // Model de opciones de nueva escuela
+    const optionsEscuela = ref([])
+    // Model de opciones de municipio
+    const optionsMunicipio = ref([])
+    // Opciones para grado escolar
     const opcionesGrado = [
       {value: 1, label: "1ro Primaria"},
       {value: 2, label: "2do Primaria"},
@@ -282,15 +335,147 @@ export default defineComponent({
       {value: 11, label: "2do Preparatoria"},
       {value: 12, label: "3ro Preparatoria"}
     ];
+    // Manejador de mostrador de nueva escuela
+    const nuevaEscuela = () => {
+      modelEscuela.value = null
+      nuevaEscuelaModel.value = ''
+      muestraNuevaEscuela.value = !muestraNuevaEscuela.value
+    }
 
+    // Filtro para select2 de escuela
+    const filterEscuela = (val, update) => {
+      API.Request.Select2(
+        API.Model('Auth').selectEscuela,
+        val,
+        opcionesReales => {
+          update(() => {
+            optionsEscuela.value = opcionesReales
+          })
+        },
+        () => {
+          API.Utils.Notifica('Ocurrió un error al buscar', 'Intenta más tarde', false, 'top');
+        }
+      )
+    }
+
+    // Filtro para select2 de municipio
+    const filterMunicipio = (val, update) => {
+      API.Request.Select2(
+        API.Model('Auth').selectMunicipio,
+        val,
+        opcionesReales => {
+          update(() => {
+            optionsMunicipio.value = opcionesReales
+          })
+        },
+        () => {
+          API.Utils.Notifica('Ocurrió un error al buscar', 'Intenta más tarde', false, 'top');
+        },
+        'text',
+        {
+          'c_estado': 17
+        }
+      )
+    }
+    // functiones verificadoras
+    function verificaPersonalFunction() {
+      var valid = (user.value.name !== '' & user.value.lastname !== '')
+      valid = (valid & (user.value.email.includes('@') & user.value.email.includes('.')))
+      valid = (valid & (String(user.value.fecha_nacimiento).length > 6))
+      valid = (valid & (String(user.value.telefono).length >= 10))
+      return valid == 0
+    }
+    function verificaEscolarFunction() {
+      return !(
+        (muestraNuevaEscuela.value ? nuevaEscuelaModel.value.length > 3 : modelEscuela.value !== null) &&
+        modelMunicipio.value !== null && modelGrado.value !== null
+      )
+    }
+    if(verificaEscolarFunction()) {
+      tab.value = "escolar"
+    }
+    function siguientePaso(){
+      Usuario = LocalStorage.getItem('user_logged')
+      user.value = Usuario
+      if(verificaPersonalFunction()) {
+        console.log('------396')
+        tab.value = "personal"
+      } else if(verificaEscolarFunction()) {
+        console.log('------399')
+        tab.value = "escolar"
+      } else {
+        router.push({ name: 'Home' })
+      }
+    }
+    // verifica datos personales
+    const verificaPersonal = computed(verificaPersonalFunction)
+    // verifica datos escolares
+    const verificaEscolar = computed(verificaEscolarFunction)
+    // actualizador de datos personales
+    const actualizaAlumno = async () => {
+      if (!verificaEscolarFunction() && (user.value.id_status == 1 || user.value.id_status==null)) {
+        user.value.id_status = 2
+      }
+      await store.dispatch('auth/actualizaDatosPersonales', {
+        user: user.value,
+        callback: siguientePaso
+      })
+    }
+    // actualizador de datos escolares
+    const actualizaEscolares = async () => {
+      user.value = Usuario
+      user.value.id_grado = modelGrado.value.value
+      user.value.id_municipio = modelMunicipio.value.value
+      user.value.id_escuela = modelEscuela.value.value
+      if (!verificaPersonalFunction() && (user.value.id_status == 1 || user.value.id_status==null)) {
+        user.value.id_status = 2
+      }
+      if (user.value.id_grado <= 6) {
+        user.value.paquetealumno_id = user.value.posible_paquete.id
+        user.value.paquete_id = 1
+      } else if (user.value.id_grado <= 9) {
+        user.value.paquetealumno_id = user.value.posible_paquete.id
+        user.value.paquete_id = 2
+      } else {
+        user.value.paquetealumno_id = user.value.posible_paquete.id
+        user.value.paquete_id = 3
+      }
+      await store.dispatch('auth/actualizaDatosPersonales', {
+        user: user.value,
+        callback: siguientePaso
+      })
+    }
     return {
-      user: {},
-      isPwd,
+      tab,
+      // refs
+      user,
+      modelEscuela,
+      modelMunicipio,
+      modelGrado,
+      nuevaEscuelaModel,
+      // isPwd,
+      muestraNuevaEscuela,
+      // opciones
+      optionsEscuela,
+      optionsMunicipio,
+      opcionesGrado,
+      // manejadores
+      nuevaEscuela,
+      // filtros
+      filterEscuela,
+      filterMunicipio,
+      // funciones
+      actualizaAlumno,
+      actualizaEscolares,
+      // computed
+      verificaPersonal,
+      verificaEscolar,
+
+      // TODO: funcionalidad de subir avatar
       FotoDePerfil: '',
       newProfilePhotoPreview: '',
       newProfilePhoto: '',
       profilephoto: false,
-      user_details: {},
       product: {
         estado: { label: Usuario.estado },
         municipio: { label: Usuario.municipio }
@@ -306,8 +491,7 @@ export default defineComponent({
       password: {
         nueva: '',
         confirmacion: ''
-      },
-      opcionesGrado
+      }
     }
   },
   methods: {
@@ -441,6 +625,9 @@ export default defineComponent({
         this.password.confirmacion = null
       }
     }
+  },
+  mounted () {
+    this.$emit('activeTitle', 'Mi perfil')
   }
 })
 </script>

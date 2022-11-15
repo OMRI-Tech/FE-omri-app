@@ -1,8 +1,8 @@
 {
   "name": "fe-omri-app",
-  "version": "0.0.1",
-  "description": "This a programming training app, aimed to help OMRI's students learng the magic world of programming.",
-  "productName": "OMRI App",
+  "version": "4.0.1",
+  "description": "Plataforma de entrenamiento de la OMRI",
+  "productName": "Entrenator",
   "author": "pronficilio",
   "private": true,
   "scripts": {
@@ -10,10 +10,12 @@
     "make:ssl": "mkcert omri-app.test omri-app.dev localhost 127.0.0.1 ::1"
   },
   "dependencies": {
+    "@quasar/cli": "^1.3.2",
     "@quasar/extras": "^1.0.0",
     "@vue/composition-api": "^1.6.2",
     "axios": "^0.21.1",
     "core-js": "^3.6.5",
+    "firebase": "^9.9.4",
     "quasar": "^2.0.0",
     "vue": "^3.0.0",
     "vue-router": "^4.0.0",

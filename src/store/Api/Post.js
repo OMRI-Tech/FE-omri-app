@@ -2,27 +2,34 @@ import axios from 'axios'
 import { Loading, QSpinnerBall } from 'quasar'
 
 /**
- * 
- * @param {String} loadingMessage 
- * @param {String} url 
- * @param {FormData} formData 
- * @param {Function} response 
+ *
+ * @param {String} loadingMessage
+ * @param {String} url
+ * @param {FormData} formData
+ * @param {Function} response
  * @param {Function} error
  */
 
-export default function (loadingMessage, url, formData, response, error) {
+export default async function (loadingMessage, url, formData, response, error) {
+  console.log('imprimiendo: ', loadingMessage)
   if (loadingMessage !== null) Loading.show({ message: loadingMessage, spinner: QSpinnerBall })
-  axios({
+  await axios({
     method: 'POST',
     url: url,
     data: formData
   })
     .then(r => {
       Loading.hide()
-      response(r.data)
+      if (typeof response === 'function') {
+        response(r.data)
+      }
     })
     .catch(e => {
       Loading.hide()
-      error(e)
+      console.error('-----------');
+      console.log(e)
+      if (typeof e === 'function') {
+        error(e)
+      }
     })
 }

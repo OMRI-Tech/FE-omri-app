@@ -25,21 +25,21 @@
         <div rounded flat class="text-center">
           <div class="q-ma-xs">
             <p class="title-account q-mt-md">Crear una cuenta</p>
-            <!-- <q-btn rounded flat class="button">
+            <q-btn rounded flat class="button" @click="registroFacebook">
               <p class="text-button">Registrate con</p>
               <q-icon class="q-ml-sm" size="sm">
                 <img :src="images.logoFacebook" />
               </q-icon>
             </q-btn>
-            <q-btn rounded flat class="button">
+            <!--q-btn rounded flat class="button">
               <p class="text-button">Registrate con</p>
               <q-icon class="q-ml-sm" size="sm">
                 <img :src="images.logoGoogle" />
               </q-icon>
-            </q-btn> -->
+            </!--q-btn> -->
           </div>
-          <!-- <p class="title-account or">- OR -</p> -->
-          <q-form class="form-register" align="center" @submit.prevent="">
+          <p class="title-account or">- O REGISTRATE AQUI  -</p>
+          <q-form class="form-register" align="center" @submit.prevent="registro">
             <q-input
             dense v-model="user.name"
             class="q-mb-sm text-button"
@@ -62,7 +62,7 @@
               <q-input
                 dense v-model.number="user.telNum"
                 class="q-my-sm text-button col"
-                type="tel" mask="(###)###-####"
+                type="tel" mask="(###) ###-####"
                 unmasked-value
                 label="Teléfono*" color="teal"
                 :rules="[val => String(val).length >= 10 || 'Campo no válido']"
@@ -71,10 +71,10 @@
             <q-input
               dense v-model="user.email"
               class="q-my-sm text-button"
-              label="Correo electrónico*" color="teal" 
+              label="Correo electrónico*" color="teal"
               :rules="[val => val.trim() !== '' || 'Campo no válido']"
             />
-            <q-input 
+            <q-input
               dense v-model="user.password"
               class="q-my-sm text-button"
               :type="isPwd ? 'password' : 'text'"
@@ -93,7 +93,7 @@
               <q-toggle dense v-model="user.priv" class="tittle-account login"/>
               <div class="col column items-center">
                 <p class="tittle-account login col q-ma-sm">
-                  Acepto las 
+                  Acepto las
                   <a href="https://www.omri.org.mx/aviso-de-privacidad" target="_blank">Políticas de privacidad</a>*
                 </p>
               </div>
@@ -118,6 +118,8 @@
 
 <script>
 import { ref, defineComponent, reactive, computed } from 'vue'
+import { auth, db, provider } from "boot/firebase";
+import { useStore } from 'vuex'
 
 export default defineComponent({
   setup () {
@@ -130,7 +132,7 @@ export default defineComponent({
       cloudUp: require('assets/img/cloud-up.png'),
       cloudDown: require('assets/img/cloud-down.png')
     }
-    const user = reactive({
+    const user = ref({
       name: '',
       email: '',
       password: '',
@@ -138,23 +140,37 @@ export default defineComponent({
       mlname: '',
       telNum: '',
       birthdate: '',
+      facebook: false,
       priv: true,
     })
     const isPwd = ref(true)
     const verification = computed(() => {
-      var Valid = (user.name !== '')
-      Valid = (Valid & user.lname.trim() !== '')
-      Valid = (Valid & (user.email.includes('@') & user.email.includes('.')))
-      Valid = (Valid & user.password.trim() !== '')
-      Valid = (Valid & (String(user.telNum).length >= 10))
-      Valid = (Valid & user.priv)
+      var Valid = (user.value.name !== '')
+      Valid = (Valid & user.value.lname.trim() !== '')
+      Valid = (Valid & (user.value.email.includes('@') & user.value.email.includes('.')))
+      Valid = (Valid & user.value.password.trim() !== '')
+      Valid = (Valid & (String(user.value.telNum).length >= 10))
+      Valid = (Valid & user.value.priv)
       return Valid == 0
     })
+    const store = useStore();
+    const registro = async () => {
+      store.dispatch('auth/registerFirebase', user.value)
+    }
+    const registroFacebook = () => {
+      const u = user.value
+      u.facebook = true
+      store.dispatch('auth/registerFirebase', u)
+      // signInWithRedirect(auth, provider);
+    }
     return {
       user,
       images,
       isPwd,
-      verification
+      verification,
+      registro,
+      registroFacebook,
+      store
     }
   }
 })
