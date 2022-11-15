@@ -25,7 +25,7 @@
         </q-bar>
 
         <q-card-section>
-          <div class="text-h6"> no? como lo hice en...supone que aqui puedo mandar un prop, {{$props.video}}</div>
+          <div class="text-h6">{{$props.video}}</div>
         </q-card-section>
 
         <q-card-section class="q-pt-none">
