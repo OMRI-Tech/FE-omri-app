@@ -391,8 +391,10 @@ export default defineComponent({
         modelMunicipio.value !== null && modelGrado.value !== null
       )
     }
-    if(verificaEscolarFunction()) {
-      tab.value = "escolar"
+    if(verificaPersonalFunction()) {
+      tab.value = "personal"
+    } else if(verificaEscolarFunction()) {
+      tab.value = "escolares"
     }
     function siguientePaso(){
       Usuario = LocalStorage.getItem('user_logged')
@@ -402,7 +404,7 @@ export default defineComponent({
         tab.value = "personal"
       } else if(verificaEscolarFunction()) {
         console.log('------399')
-        tab.value = "escolar"
+        tab.value = "escolares"
       } else {
         router.push({ name: 'Home' })
       }
