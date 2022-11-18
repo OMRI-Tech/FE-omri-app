@@ -21,7 +21,7 @@ _Estas instrucciones te permitirán obtener una copia del proyecto en funcionami
 
 ```bash
 # ~/project
-yarn
+yarn run install:project
 ```
 
 ## Comandos principales ⚙️
