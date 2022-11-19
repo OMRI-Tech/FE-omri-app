@@ -1,13 +1,13 @@
 <template>
   <div class="q-pa-md">
-    <component :is="currentComponent" />
+    <component :is="currentComponent" @setTitle="setTitle" />
   </div>
 </template>
 
 <script>
 import { defineComponent, ref, onBeforeMount } from 'vue'
 import { useRoute } from 'vue-router'
-// Karel 
+// Karel
   // Seccion 1
 import ks11 from 'pages/Lessons/Karel/Seccion 1/Leccion 1/Index.vue'
 import ks12 from 'pages/Lessons/Karel/Seccion 1/Leccion 2/Index.vue'
@@ -19,7 +19,7 @@ import ks28 from 'pages/Lessons/Karel/Seccion 2/Leccion 8/Index.vue'
 import ks31 from 'pages/Lessons/Karel/Seccion 3/Leccion 1/Index.vue'
 // C
   // Seccion 1
-
+import cs11 from 'pages/Lessons/C/Seccion 1/Leccion 1/Index.vue'
   // Seccion 2
 import cs23 from 'pages/Lessons/C/Seccion 2/Leccion 3/Index.vue'
 
@@ -38,6 +38,7 @@ export default defineComponent({
     ks27,
     ks28,
     ks31,
+    cs11,
     cs23
     /**
      * TODO: Añade aqui el componente
@@ -46,11 +47,11 @@ export default defineComponent({
      */
   },
   setup (props, { emit }) {
-    const title = "hol"; // computed(() => useStore().getters['lessons/lessonByRoute'](useRoute().params).title)
     // Very rarely enter this watch, but it is better to have it Xd
-    //watch(() => title, newTitle => emit('changeTitleOfLesson', title)) // 
-    //emit('changeTitleOfLesson', title)
-
+    //watch(() => title, newTitle => emit('changeTitleOfLesson', title)) //
+    const setTitle = (title) => {
+      emit('changeTitleOfLesson', title)
+    }
     const currentComponent = ref("")
     const route = useRoute()
     onBeforeMount(() => {
@@ -70,7 +71,7 @@ export default defineComponent({
     });
 
     return {
-      title, currentComponent
+      currentComponent, setTitle
     }
   }
 })
