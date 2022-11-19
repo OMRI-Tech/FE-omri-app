@@ -1,6 +1,7 @@
 import { route } from 'quasar/wrappers'
 import { createRouter, createMemoryHistory, createWebHistory, createWebHashHistory } from 'vue-router'
 import routes from './routes'
+import { auth } from "boot/firebase";
 import Store from 'src/store'
 
 export default route(function (/* { store, ssrContext } */) {

@@ -38,6 +38,8 @@ body
   font-weight: 400
   font-size: 10px
   line-height: 15px
+  &.active
+    color: #FFD164
 
 .header, .footer
   @extend %custom-hf
@@ -66,7 +68,7 @@ body
   border-radius: 16px
   width: 95%
   max-height: 160px
-  margin: 15px auto auto auto
+  margin: 0 auto
 
   & > div.info-image
     padding: 15px
@@ -117,6 +119,7 @@ body
       background-repeat: no-repeat
       background-position: bottom
       transition: background-position linear 4s
+      bottom: -30px
   .entrenator-background
     background: url("~assets/background/entrenator.png")
     background-repeat: no-repeat
@@ -194,13 +197,22 @@ body
   opacity: 1
   box-shadow: inset 0px 3.2px 3.2px rgba(0, 0, 0, 0.25)
 
+.bloqueo-sin-niveles
+  background: url("~assets/background/sin-niveles.png")
+  background-position: center
+  background-repeat: no-repeat
+.bloqueo-sin-vidas
+  background: url("~assets/background/sin-vidas.png")
+  background-position: center
+  background-repeat: no-repeat
+
 @media(min-width: 325px)
   .main-container .path
     height: 60%
     top: calc(50% - 34%)
   .figura
     width: 45px
-    height: 45px 
+    height: 45px
     top: calc(50% - 35px)
     left: calc(50% - 35px)
     @include on-circle($circle-radius: 140, $manual-angle: 5, $distance: 80, $offset: 60)
@@ -215,7 +227,7 @@ body
     background-position-x: right 45px
   .figura
     width: 50px
-    height: 50px  
+    height: 50px
     top: calc(50% - 40px)
     left: calc(50% - 40px)
     @include on-circle($circle-radius: 160, $manual-angle: 7, $distance: 86, $offset: 60)
@@ -225,11 +237,11 @@ body
 @media(min-width: 400px)
   .main-container .path
     background-position-x: right 40px
-  .figura  
+  .figura
     font-size: 24px
     padding-top: 12px
     width: 55px
-    height: 55px  
+    height: 55px
     top: calc(50% - 45px)
     left: calc(50% - 45px)
     @include on-circle($circle-radius: 180, $manual-angle: 5, $distance: 92, $offset: 60)
@@ -246,7 +258,7 @@ body
 @media(min-width: 485px)
   .figura
     width: 60px
-    height: 60px  
+    height: 60px
     top: calc(50% - 50px)
     left: calc(50% - 50px)
     @include on-circle($circle-radius: 212, $manual-angle: 5, $distance: 115, $offset: 90)

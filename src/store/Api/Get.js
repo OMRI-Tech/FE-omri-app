@@ -10,19 +10,25 @@ import { Loading, QSpinnerBall } from 'quasar'
  * @param {Function} error 
  */
 
-export default function  (loadingMessage, url, params, response, error) {
+export default async function  (loadingMessage, url, params, response, error) {
   if (loadingMessage !== null) Loading.show({ message: loadingMessage, spinner: QSpinnerBall })
-  axios({
+  await axios({
     method: 'get',
     url: url,
     params: params
   })
     .then(r => {
       Loading.hide()
-      response(r.data)
+      if (typeof response === 'function') {
+        response(r.data)
+      }
     })
     .catch(e => {
       Loading.hide()
-      error(e)
+      console.error('-----------');
+      console.log(e)
+      if (typeof e === 'function') {
+        error(e)
+      }
     })
 }

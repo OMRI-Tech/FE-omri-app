@@ -1,17 +1,28 @@
 <template>
-  <div>
-    <h4>Esta es la sección 1</h4>
-    <h5>lección 1</h5>
+  <div class="first-content">
+    <p>Lee atentamente las reglas de la OMRI</p>
+    <ul>
+      <li v-for="(item,id) in lista" :key="id">
+        {{ item }}
+      </li>
+    </ul>
   </div>
 </template>
 
+
 <script>
-import { defineComponent } from "vue"
+import { defineComponent, onBeforeMount } from "vue"
+import textos from 'src/pages/Lessons/Karel/Seccion 1/Leccion 1/textLesson'
 export default defineComponent({
   name: 'ks11',
-  setup () {
-    
+  setup (props,{emit}) {
+    onBeforeMount(() => {
+      emit('setTitle','Reglamento OMRI')
+    })
+    const lista = textos()
+    return {lista}
   }
 })
 </script>
-
+<style scoped>
+</style>
