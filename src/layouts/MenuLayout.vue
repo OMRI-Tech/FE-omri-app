@@ -39,6 +39,15 @@
         </div>
       </q-toolbar>
     </q-footer>
+    <q-dialog
+      v-model="dialogBloqueo"
+      persistent
+      :maximized="true"
+      transition-show="slide-up"
+      transition-hide="slide-down"
+    >
+      <q-card :class="claseBloqueadora"></q-card>
+    </q-dialog>
   </q-layout>
 </template>
 
@@ -57,6 +66,10 @@ export default defineComponent({
     const router = useRouter()
     const vidas = ref(0)
     const actualTitle = ref()
+    /// dialog bloqueador
+    const dialogBloqueo = ref(false)
+    /// clase bloqueadora
+    const claseBloqueadora = ref('bloqueo-sin-vidas')
     const activeTitle = (title) => {
       actualTitle.value = title
       console.log('active title con esto: ', title)
@@ -64,6 +77,9 @@ export default defineComponent({
     const actualizaVidas = () => {
       store.dispatch('auth/actualizaVidas').then(() => {
         vidas.value = Store().getters['auth/vidas']
+        if(store.getters['auth/vidas'] == 0){
+          dialogBloqueo.value = true
+        }
       })
     }
     onBeforeMount(() => {
@@ -88,6 +104,8 @@ export default defineComponent({
       activeTitle,
       actualizaVidas,
       actualTitle,
+      dialogBloqueo,
+      claseBloqueadora,
       itemsFooter: [
         { title: 'Mi perfil', activeImage: require('assets/icons/out_profile.svg'), regularImage: '', click: verPerfil},
         { title: 'Menú', activeImage: require('assets/icons/out_ranking.svg'), regularImage: '', click: verMenu},

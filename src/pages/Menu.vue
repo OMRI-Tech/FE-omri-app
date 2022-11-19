@@ -103,10 +103,17 @@ export default defineComponent({
   name: 'MainMenu',
   setup (props, context) {
     const store = useStore()
+    /// url de video
+    const urlVideo = ref('')
+    /// titulo del video
+    const tituloVideo = ref('')
+    /// subnivel seleccionado
+    const stepActual = ref(null)
+    /// dialog muestra video
+    const dialogVideo = ref(false)
     const user = store.getters['auth/user']
     var niveles = store.getters['auth/dameNiveles']
     const progresoGlobal = () => { return store.getters['auth/dameProgreso'] }
-    const dialogVideo = ref(false)
     const levels = computed(() => {
       var progreso = progresoGlobal()
       return niveles[user.id_nivel - 1] !== undefined && progreso !== null ? niveles[user.id_nivel - 1].map((v, i) => {
@@ -114,9 +121,7 @@ export default defineComponent({
         return {...v, status: progress.length ? (progress[0].realizado == 0 ? 'done' : 'visited') : '' }
       }) : null
     })
-    const urlVideo = ref('')
-    const tituloVideo = ref('')
-    const stepActual = ref(null)
+
     const changeUrlVideo = (step) => {
       Loading.show({ message: 'Cargando video', spinner: QSpinnerBall })
       urlVideo.value = step.url
