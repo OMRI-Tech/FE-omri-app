@@ -32,6 +32,9 @@
           <div v-if="step.url !== undefined && step.status != ''" @click="changeUrlVideo(step)">
             {{ step.step }}
           </div>
+          <div v-else-if="step.lesson !== undefined && step.status !== ''" @click="openLesson(step)">
+            {{step.step}}
+          </div>
           <div v-else>
             {{step.step}}
           </div>
@@ -98,11 +101,13 @@
 <script>
 import { defineComponent, onMounted, ref, computed } from 'vue'
 import { useStore } from 'vuex'
+import { useRouter } from 'vue-router'
 import { Loading, QSpinnerBall } from 'quasar'
 export default defineComponent({
   name: 'MainMenu',
   setup (props, context) {
     const store = useStore()
+    const router = useRouter()
     /// url de video
     const urlVideo = ref('')
     /// titulo del video
@@ -124,6 +129,7 @@ export default defineComponent({
 
     const changeUrlVideo = (step) => {
       Loading.show({ message: 'Cargando video', spinner: QSpinnerBall })
+      store.commit('auth/STEP_ACTUAL', step.step)
       urlVideo.value = step.url
       tituloVideo.value = step.title
       stepActual.value = step
@@ -131,6 +137,11 @@ export default defineComponent({
       setTimeout(()=>{
         Loading.hide()
       }, 3500)
+    }
+    const openLesson = (step) => {
+      store.commit('auth/STEP_ACTUAL', step.step)
+      console.log('veamos esta leccion', step)
+      router.push({ path: step.lesson})
     }
     const marcaProgreso = () => {
       store.dispatch('auth/marcaProgreso', {
@@ -199,7 +210,8 @@ export default defineComponent({
       stepActual,
       dialogVideo,
       maximizedToggle: ref(true),
-      marcaProgreso
+      marcaProgreso,
+      openLesson
     }
   },
   mounted () {

@@ -15,3 +15,7 @@ export function CLEAR_USER (state) {
   state.usuario = null
   console.log('mutacion clear_user', state.olimpico,  state.olimpico && state.olimpico.value)
 }
+
+export function STEP_ACTUAL (state, step) {
+  state.stepActual = step
+}

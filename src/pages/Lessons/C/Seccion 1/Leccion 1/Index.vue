@@ -9,12 +9,11 @@
   </div>
 </template>
 
-
 <script>
 import { defineComponent, onBeforeMount } from "vue"
-import textos from 'src/pages/Lessons/Karel/Seccion 1/Leccion 1/textLesson'
+import textos from 'src/pages/Lessons/C/Seccion 1/Leccion 1/textLesson'
 export default defineComponent({
-  name: 'ks11',
+  name: 'cs11',
   setup (props,{emit}) {
     onBeforeMount(() => {
       emit('setTitle','Reglamento OMRI')
@@ -24,5 +23,3 @@ export default defineComponent({
   }
 })
 </script>
-<style scoped>
-</style>
