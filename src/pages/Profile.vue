@@ -428,7 +428,12 @@ export default defineComponent({
       user.value = Usuario
       user.value.id_grado = modelGrado.value.value
       user.value.id_municipio = modelMunicipio.value.value
-      user.value.id_escuela = modelEscuela.value.value
+      if(modelEscuela.value !== null) {
+        user.value.id_escuela = modelEscuela.value.value
+      }else{
+        user.value.id_escuela = null
+        user.value.escuela = nuevaEscuelaModel.value
+      }
       if (!verificaPersonalFunction() && (user.value.id_status == 1 || user.value.id_status==null)) {
         user.value.id_status = 2
       }
