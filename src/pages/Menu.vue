@@ -105,13 +105,15 @@ export default defineComponent({
     const store = useStore()
     const user = store.getters['auth/user']
     var niveles = store.getters['auth/dameNiveles']
-    var progreso = store.getters['auth/dameProgreso']
+    const progresoGlobal = () => { return store.getters['auth/dameProgreso'] }
     const dialogVideo = ref(false)
-    const levels = ref(niveles[user.id_nivel - 1] !== undefined && progreso !== null ? niveles[user.id_nivel - 1].map((v, i) => {
-      let progress = progreso.filter(p => p.step == v.step)
-      return {...v, status: progress.length ? (progress[0].realizado == 0 ? 'done' : 'visited') : '' }
-    }) : null);
-
+    const levels = computed(() => {
+      var progreso = progresoGlobal()
+      return niveles[user.id_nivel - 1] !== undefined && progreso !== null ? niveles[user.id_nivel - 1].map((v, i) => {
+        let progress = progreso.filter(p => p.step == v.step)
+        return {...v, status: progress.length ? (progress[0].realizado == 0 ? 'done' : 'visited') : '' }
+      }) : null
+    })
     const urlVideo = ref('')
     const tituloVideo = ref('')
     const stepActual = ref(null)
@@ -126,22 +128,12 @@ export default defineComponent({
       }, 3500)
     }
     const marcaProgreso = () => {
-      console.log('---------- se empieza a marcar progreso')
       store.dispatch('auth/marcaProgreso', {
         step: stepActual.value.step,
         nivel_id: user.id_nivel,
         user_id: user.id
-      }).finally(() => {
-          setTimeout(()=>{
-            console.log('----------- tenemos por aqui el then')
-            progreso = store.getters['auth/dameProgreso']
+      }).then(() => {
             context.emit('actualizaVidas')
-            levels.value = niveles[user.id_nivel - 1].map((v, i) => {
-              let progress = progreso.filter(p => p.step == v.step)
-              return {...v, status: progress.length ? (progress[0].realizado == 0 ? 'done' : 'visited') : '' }
-            })
-            console.log('ok se actualizó los levels ', progreso, levels.value)
-          }, 3500)
         }
       )
     }
@@ -189,7 +181,6 @@ export default defineComponent({
       }
       setInterval(animameEsta, 6500)
     })
-    console.log(user)
     return {
       direccion,
       images,
