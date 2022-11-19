@@ -47,19 +47,7 @@ export function Logout () {
 }
 
 function realLogin(commit, userDB, user, token, formData) {
-  console.log('{{{formData}}');
-  for (const pair of formData.entries()) {
-    console.log(`${pair[0]}, ${pair[1]}`);
-  }
   if (token !== null) {
-    /*setDoc(doc(db, 'users', userDB.uid), {
-      correo: userDB.email,
-      uid: userDB.uid,
-      estado: true,
-      user_id: user.id,
-      objetito: user
-    });*/
-    //axios.defaults.headers.common.Authorization = 'Bearer ' + token
     LocalStorage.set('user_logged', user)
     LocalStorage.set('api_token', token)
     LocalStorage.set('avatar', user.avatar)
@@ -75,9 +63,7 @@ function realLogin(commit, userDB, user, token, formData) {
 }
 
 export async function loginFirebase ({ commit }, details) {
-  console.log('login firebase action')
   const formData = new FormData()
-  console.warn('ojo con el email y passwor', 'email', details.email,'password', details.password)
   formData.append('email', details.email)
   formData.append('password', details.password)
 
@@ -125,7 +111,6 @@ export async function loginFirebase ({ commit }, details) {
           response => {
             let user = {}
             let token = null
-            console.log(response.status === 1)
             if (response.status === 1) {
               /// si existe en sistema entonces
               token = response.access_token
@@ -136,10 +121,7 @@ export async function loginFirebase ({ commit }, details) {
                 details.email,
                 details.password
               ).then((userCredential) => {
-                console.log(userCredential);
                 const userDB = userCredential.user;
-                console.log(userDB)
-                console.log(token)
                 realLogin(commit, userDB, user, token, formData)
               })
               .catch((error) => {
@@ -147,7 +129,6 @@ export async function loginFirebase ({ commit }, details) {
                 alert(error.message)
               });
             }
-            console.log(token === null, token);
             Notify.create({
               message: token === null ? '¡Contraseña Incorrecta!' : '¡Sesión Iniciada!',
               caption: token === null ? 'La contraseña no coincide, vuelve a intentarlo' : `Bienvenido ${user.name}!`,
@@ -202,7 +183,6 @@ export async function registerFirebase ({ commit }, details) {
     ).then((userCredential) => {
       const userDB = userCredential.user;
       const formData = new FormData()
-      console.warn('----- logueado', userDB)
       formData.append('email', email)
       API.Request.Post(
         'Comprobando correo...',
@@ -317,7 +297,6 @@ export async function registerFirebase ({ commit }, details) {
   }
 }
 export async function logoutFirebase ({ commit }) {
-  console.log('logout firebase action')
   await signOut(auth)
   LocalStorage.clear()
   commit('CLEAR_USER')
@@ -326,7 +305,6 @@ export async function logoutFirebase ({ commit }) {
   this.$router.push({ name: 'Login' })
 }
 export function fetchUser ({ commit }) {
-  console.log('fetch action')
   auth.onAuthStateChanged(async user => {
     if (user === null) {
       commit('CLEAR_USER')
@@ -347,7 +325,6 @@ export async function searchUser ({ commit }, details) {
     { telefono: telefono },
     response => {
       if (response.status === 1 && response.data.length > 0) {
-        console.log(response)
         callback(response.data)
       } else {
         API.Utils.Notifica('No se encontró ningun usuario con ese teléfono', 'Comprueba que escribiste bien el teléfono o inicia sesión con tu correo', false, 'top')
@@ -375,7 +352,6 @@ export async function actualizaDatosPersonales ({}, details) {
     if(user[key] !== null)
       formData.append(key, user[key])
   }
-  console.log(user)
   await API.Request.Post(
     'Actualizando datos del olímpico',
     API.Model('Auth').updateUser + user.id,
@@ -389,14 +365,12 @@ export async function actualizaDatosPersonales ({}, details) {
         if (typeof callback === 'function') {
           callback()
         }
-        console.log('------------')
-        console.log(response.data)
       }
     }
   )
 }
 
-export async function actualizaVidas () {
+export async function actualizaVidas ({commit}) {
   const user = LocalStorage.getItem('user_logged')
   await API.Request.Get(
     'Recuperando vidas',
@@ -415,9 +389,8 @@ export async function actualizaVidas () {
       user_id: user.id
     },
     levels => {
-      console.log('se reciben niveles 418', levels)
       if(levels.status === 1){
-        LocalStorage.set('niveles', levels.niveles)
+        commit('SET_OLIMPICO', levels.niveles)
       }
     }
   )
@@ -441,9 +414,8 @@ export async function marcaProgreso ({}, details) {
           user_id: user_id
         },
         levels => {
-          console.log('se reciben niveles', levels)
           if(response.status === 1){
-            LocalStorage.set('niveles', levels.niveles)
+            commit('SET_OLIMPICO', levels.niveles)
             API.Utils.Notifica('', 'Progreso guardado', true, 'top')
           }
         }
