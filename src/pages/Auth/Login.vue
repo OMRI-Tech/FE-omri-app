@@ -132,6 +132,7 @@ export default defineComponent({
       listaUsuarios.value = users
       if (users.length == 1) {
         usuarioAenviar.value = users[0].id
+        user.value.email = users[0].email
         enviaOTP()
       } else {
         let items = users.map(({ id, name }) => ({ label: name, value: id, color:'accent' }))
