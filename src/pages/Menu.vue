@@ -95,6 +95,25 @@
         </q-card-section>
       </q-card>
     </q-dialog>
+    <q-dialog v-model="dialogPago" persistent transition-show="scale" transition-hide="scale">
+      <q-card class="text-white main-rectangle" style="width: 500px">
+        <q-card-section>
+          <div class="text-h5">Pago incompleto</div>
+        </q-card-section>
+        <q-card-section class="q-pt-none" style="font-size: 20px">
+          Completa el pago de tu inscripción en este link<br/><br/>
+          <i>Nota: Si eres de CECYTE, tu pago ya ha sido cubierto por tu escuela</i>
+        </q-card-section>
+
+        <q-card-actions align="center" class="bg-whte text-teal">
+          <a :href="linkDePago" target="_blank">
+            <q-btn color="accent" label="Click aqui para pagar inscripción"/>
+          </a>
+
+          <q-btn color="danger" label="Pagar en otro momento" @click="marcaEnterado" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -103,6 +122,7 @@ import { defineComponent, onMounted, ref, computed } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import { Loading, QSpinnerBall } from 'quasar'
+import * as API from 'src/store/Api'
 export default defineComponent({
   name: 'MainMenu',
   setup (props, context) {
@@ -116,15 +136,58 @@ export default defineComponent({
     const stepActual = ref(null)
     /// dialog muestra video
     const dialogVideo = ref(false)
+    /// link de pago
+    const linkDePago = ref('')
+    const enterado = ref(false)
     const user = store.getters['auth/user']
     var niveles = store.getters['auth/dameNiveles']
     const progresoGlobal = () => { return store.getters['auth/dameProgreso'] }
+    const functionInscripcionPagada = () => { return store.getters['auth/inscripcionPagada']}
+    const functionDameDatosDePago = () => { return store.getters['auth/dameDatosDePago']}
+    const marcaEnterado = () => {
+      enterado.value = true
+    }
     const levels = computed(() => {
       var progreso = progresoGlobal()
       return niveles[user.id_nivel - 1] !== undefined && progreso !== null ? niveles[user.id_nivel - 1].map((v, i) => {
         let progress = progreso.filter(p => p.step == v.step)
         return {...v, status: progress.length ? (progress[0].realizado == 0 ? 'done' : 'visited') : '' }
       }) : null
+    })
+    const dialogPago = computed(() => {
+      let statusPago = functionInscripcionPagada()
+      if(!statusPago){
+        if(enterado.value){
+          return false
+        }
+        if(linkDePago.value != ''){
+          console.log('porque hay link')
+          return true
+        }
+        let cargo = functionDameDatosDePago()
+        if(cargo !== null){
+          if(cargo.cargos && cargo.cargos.length){
+            API.Request.Get(
+              'Creando liga de pago...',
+              API.Model('Auth').payLink,
+              {
+                cargo_id: cargo.cargos[0].id
+              },
+              res3 => {
+                linkDePago.value = res3.data
+                return true
+              }
+            )
+          }else{
+            store.dispatch('auth/notifica', {
+              title: 'Encontré un error en tu cuenta',
+              msg: 'Por favor avisa en Telegram de este error: 228-' + user.id,
+              type: false
+            })
+          }
+        }
+      }
+      return false
     })
 
     const changeUrlVideo = (step) => {
@@ -195,6 +258,7 @@ export default defineComponent({
       if(user.grado === null){
         dialogPerfilIncompleto.value = true
       }
+      store.dispatch('auth/determinaStatusPago', {user_id: user.id})
       setInterval(animameEsta, 6500)
     })
     return {
@@ -211,7 +275,11 @@ export default defineComponent({
       dialogVideo,
       maximizedToggle: ref(true),
       marcaProgreso,
-      openLesson
+      openLesson,
+      dialogPago,
+      linkDePago,
+      enterado,
+      marcaEnterado
     }
   },
   mounted () {

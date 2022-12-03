@@ -24,6 +24,29 @@ export function dameStepActual(state) {
   return state.stepActual
 }
 
+export function inscripcionPagada(state) {
+  if (state.statusPago == null) {
+    return false;
+  } else {
+    if (state.statusPago.cargos && state.statusPago.cargos.length) {
+      if(state.statusPago.cargos[0].pagado == 1){
+        return true;
+      }
+      if (state.statusPago.cargos[0].pagos && state.statusPago.cargos[0].pagos.length){
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  }
+}
+
+export function dameDatosDePago(state) {
+  return state.statusPago;
+}
+
 export function dameNiveles () {
   const nivelesPrimaria = [
     [
