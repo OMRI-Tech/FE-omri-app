@@ -6,6 +6,7 @@
  export default function (model) {
   return {
     getUser:  `api/encuentra-alumno`,
+    getMe: 'api/get-alumno/',
     addUser: 'api/add-alumno',
     updateUser: 'api/update-alumno/',
     updatePass: 'api/editaContra/',

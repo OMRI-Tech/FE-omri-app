@@ -396,7 +396,7 @@ export async function actualizaVidas ({commit}) {
   )
 }
 
-export async function marcaProgreso ({}, details) {
+export async function marcaProgreso ({commit}, details) {
   const {step, nivel_id, user_id} = details
   await API.Request.Post(
     'Guardando progreso',
@@ -420,6 +420,18 @@ export async function marcaProgreso ({}, details) {
           }
         }
       )
+    }
+  )
+}
+
+export async function determinaStatusPago ({commit}, details) {
+  const {user_id} = details
+  await API.Request.Get(
+    'Analizando status',
+    API.Model('Auth').getMe + user_id,
+    {},
+    data => {
+      commit('SET_STATUS_PAGO', data.data)
     }
   )
 }
