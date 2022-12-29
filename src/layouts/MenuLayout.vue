@@ -107,7 +107,7 @@ export default defineComponent({
       dialogBloqueo,
       claseBloqueadora,
       itemsFooter: [
-        { title: 'Mi perfil', activeImage: require('assets/icons/out_profile.svg'), regularImage: '', click: verPerfil},
+        { title: 'Perfil', activeImage: require('assets/icons/out_profile.svg'), regularImage: '', click: verPerfil},
         { title: 'Menú', activeImage: require('assets/icons/out_ranking.svg'), regularImage: '', click: verMenu},
         { title: 'Games', activeImage: null, icon: 'smart_toy', regularImage: '', click: irJuegos},
         { title: 'Salir', activeImage: null, icon: "logout", regularImage: '', click: logout }
