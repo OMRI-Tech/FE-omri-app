@@ -1,9 +1,16 @@
 <template>
     <div class="text-subtitle2">
-        <div class="text-center">
-            Selecciona por color 
-            <div :class="'text-'+color.color">
-                {{color.label}}
+        <div class="text-center row">
+            <div class="col">
+            </div>
+            <div class="col-auto-md">
+                Selecciona por color
+                <div :class="'text-'+color.color">
+                    {{color.label}}
+                </div>
+            </div>
+            <div class="timer-score col">
+                {{score}}
             </div>
         </div>
         <div v-for="(linea, id) in mezclados" :key="id" class="row">
@@ -27,10 +34,11 @@
 </template>
 
 <script>
-import { reactive } from '@vue/reactivity'
+import { reactive, ref } from '@vue/reactivity'
 export default {
     setup () {
         let random = Math.random()
+        const score = ref(0)
         const colores = [
             { label: 'Amarillo', color: 'yellow' },
             { label: 'Verde', color: 'green' },
@@ -43,15 +51,15 @@ export default {
             { label: 'Naranja', color: 'orange'},
         ]
         const color = colores[Math.floor(random * 9)]
-        random = (random * 10) - (Math.floor(random * 10))
+        random = Math.random()
         const mezclados = reactive([])
         for (let i = 0; i < 9; i++) {
             let arr = []
             for (let j = 0; j < 3; j++) {
                 let aux1 = Math.floor(random * 9)
-                random = (random * 10) - (Math.floor(random * 10))
+                random = Math.random()
                 let aux2 = Math.floor(random * 9)
-                random = (random * 10) - (Math.floor(random * 10))
+                random = Math.random()
                 arr.push({
                     label: colores[aux1].label, 
                     color: colores[aux2].color, 
@@ -61,13 +69,15 @@ export default {
             }
             mezclados.push(arr);
         }
-        const clickColor = (item, index) => {
+        const clickColor = (item) => {
+            score.value += (item.isTheColor && !item.checked)
             item.checked = true
         }
         return {
             mezclados, 
             clickColor,
-            color
+            color,
+            score
         }
     }
 }
