@@ -26,6 +26,12 @@ const routes = [
         component: () => import('pages/Profile.vue'),
         name: 'Profile',
         meta: { auth: true }
+      },
+      {
+        path: 'minijuegos',
+        component: () => import('pages/MiniJuegos.vue'),
+        name: 'MiniGames',
+        meta: { auth: true }
       }
     ]
   },
