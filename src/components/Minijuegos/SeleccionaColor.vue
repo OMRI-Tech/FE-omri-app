@@ -2,7 +2,7 @@
     <div class="text-subtitle2">
         <div class="text-center row q-pa-sm">
             <div class="col-8">
-                Selecciona por color
+                Selecciona por {{tipoJuego}}
                 <div class="text-italic">
                     {{color.label}}
                 </div>
@@ -62,6 +62,7 @@ export default {
     setup () {
         const router = useRouter()
         let random = Math.random()
+        const tipoJuego = ref(Math.floor(Math.random() * 2) ? "COLOR" : "NOMBRE")
         const score = ref(0)
         const maxScore = ref(0)
         const timeMounted = ref(new Date(Date.now()))
@@ -95,9 +96,9 @@ export default {
                         label: colores[aux1].label, 
                         color: colores[aux2].color, 
                         checked: false, 
-                        isTheColor: (colores[aux2].color == color.value.color)
+                        isTheColor: ((tipoJuego.value  == "COLOR") ? (color.value.color == colores[aux2].color) : (color.value.label == colores[aux1].label))
                     })
-                    count.value += (colores[aux2].color == color.value.color)
+                    count.value += ((tipoJuego.value  == "COLOR") ? (color.value.color == colores[aux2].color) : (color.value.label == colores[aux1].label))
                 }
                 mezclados.push(arr);
             }
@@ -130,6 +131,7 @@ export default {
         }
         const volverAJugar = () => {
             color.value = colores[Math.floor(random * 9)]
+            tipoJuego.value = Math.floor(Math.random() * 2) ? "COLOR" : "NOMBRE"
             random = Math.random()
             do {
                 limpiarColores()
@@ -153,7 +155,8 @@ export default {
             }
         })
         return {
-            mezclados, 
+            mezclados,
+            tipoJuego, 
             clickColor,
             color,
             score,
