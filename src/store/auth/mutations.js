@@ -3,9 +3,10 @@ export function SET_USER (state, usuario) {
   state.usuario = usuario
 }
 
-export function SET_OLIMPICO (state, olimpico){
-  state.olimpico = olimpico
-  console.log(state.olimpico)
+export function SET_OLIMPICO (state, obj){
+  state.olimpico = obj.levels
+  state.level = obj.level
+  console.log('mutation set olimpico', state.olimpico, state.level)
 }
 
 export function CLEAR_USER (state) {

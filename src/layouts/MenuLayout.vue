@@ -62,7 +62,6 @@ export default defineComponent({
   name: 'MenuLayout',
   setup () {
     const store = useStore()
-    store.dispatch('auth/actualizaVidas')
     const router = useRouter()
     const vidas = ref(0)
     const actualTitle = ref()
