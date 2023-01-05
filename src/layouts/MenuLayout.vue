@@ -84,11 +84,9 @@ export default defineComponent({
     }
     onBeforeMount(() => {
       actualizaVidas()
-      //store.dispatch('auth/fetchUser')
     })
     const logout = () => {
       store.dispatch('auth/logoutFirebase')
-      //console.error('nos fuimos de aqui falsamente')
     }
     const verPerfil = () => {
       router.push({ name: 'Profile' })

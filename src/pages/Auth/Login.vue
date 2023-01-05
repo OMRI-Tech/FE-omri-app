@@ -52,7 +52,7 @@
           </q-form>
           <q-form v-if="usarWhatsapp && otpEnviado" class="form-register" align="center" @submit.prevent="login()">
             <p class="title-account or q-ma-none">- Escribe el código que te enviamos por WhatsApp -</p>
-            <q-input v-model="user.email" class="hidden" type="hidden" />
+            <q-input dense v-model="user.email" class="q-my-sm text-button" label="Correo electrónico" color="teal" readonly />
             <q-input dense v-model="user.password" class="q-my-sm text-button" type="text" label="Contraseña" color="teal" mask="######" :rules="[val => val.trim() !== '' || 'Campo no válido']" />
             <q-btn rounded class="q-ma-md full-width button-submit text-button" type="submit" label="Iniciar sesión" />
           </q-form>
@@ -132,6 +132,7 @@ export default defineComponent({
       listaUsuarios.value = users
       if (users.length == 1) {
         usuarioAenviar.value = users[0].id
+        user.value.email = users[0].email
         enviaOTP()
       } else {
         let items = users.map(({ id, name }) => ({ label: name, value: id, color:'accent' }))
