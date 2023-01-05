@@ -52,7 +52,6 @@ function realLogin(commit, userDB, user, token, formData) {
     LocalStorage.set('api_token', token)
     LocalStorage.set('avatar', user.avatar)
     commit('SET_USER', auth.currentUser)
-    commit('SET_OLIMPICO', user)
     API.Request.Post(
       'Actualizando...',
       API.Model('Auth').updateUser + user.id,
@@ -390,7 +389,8 @@ export async function actualizaVidas ({commit}) {
     },
     levels => {
       if(levels.status === 1){
-        commit('SET_OLIMPICO', levels.niveles)
+        console.log('--- actualizado desde 393')
+        commit('SET_OLIMPICO', {levels: levels.niveles, level: levels.datosLevel})
       }
     }
   )
@@ -415,7 +415,8 @@ export async function marcaProgreso ({commit}, details) {
         },
         levels => {
           if(response.status === 1){
-            commit('SET_OLIMPICO', levels.niveles)
+            console.log('--- actualizado desde 419')
+            commit('SET_OLIMPICO', {levels: levels.niveles, level: levels.datosLevel})
             API.Utils.Notifica('', 'Progreso guardado', true, 'top')
           }
         }

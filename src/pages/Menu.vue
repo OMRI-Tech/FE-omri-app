@@ -16,8 +16,8 @@
     <div class="main-container">
       <div class="entrenator-background vector">
         <div class="info">
-          <p>{{user.nivel !== null ? user.nivel.name : '--'}}</p>
-          <p>NIVEL {{user.id_nivel}}</p>
+          <p>{{ datosNivel.name }}</p>
+          <p>NIVEL {{ datosNivel.id }}</p>
         </div>
       </div>
       <div class="vector-3 vector" :style="desplazamiento(3)"></div>
@@ -118,7 +118,7 @@
 </template>
 
 <script>
-import { defineComponent, onMounted, ref, computed } from 'vue'
+import { defineComponent, onMounted, beforeMounted, ref, computed } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import { Loading, QSpinnerBall } from 'quasar'
@@ -149,10 +149,22 @@ export default defineComponent({
     }
     const levels = computed(() => {
       var progreso = progresoGlobal()
-      return niveles[user.id_nivel - 1] !== undefined && progreso !== null ? niveles[user.id_nivel - 1].map((v, i) => {
+      let datos = store.getters['auth/dameDatosNivel']
+      if(datos === null){
+        datos = user.nivel;
+      }
+      console.log('niveles: ', niveles[datos.id - 1], datos)
+      return niveles[datos.id - 1] !== undefined && progreso !== null ? niveles[datos.id - 1].map((v, i) => {
         let progress = progreso.filter(p => p.step == v.step)
         return {...v, status: progress.length ? (progress[0].realizado == 0 ? 'done' : 'visited') : '' }
       }) : null
+    })
+    const datosNivel = computed(() => {
+      let datos = store.getters['auth/dameDatosNivel']
+      if(datos == null){
+        return user.nivel
+      }
+      return datos
     })
     const dialogPago = computed(() => {
       let statusPago = functionInscripcionPagada()
@@ -213,6 +225,11 @@ export default defineComponent({
         user_id: user.id
       }).then(() => {
             context.emit('actualizaVidas')
+            store.dispatch('auth/notifica', {
+              title: 'Súper!',
+              msg: 'Tomo nota que ya terminaste el video',
+              type: true
+            })
         }
       )
     }
@@ -258,9 +275,13 @@ export default defineComponent({
       if(user.grado === null){
         dialogPerfilIncompleto.value = true
       }
-      store.dispatch('auth/determinaStatusPago', {user_id: user.id})
       setInterval(animameEsta, 6500)
     })
+    beforeMounted(()=>{
+      console.log()
+      store.dispatch('auth/determinaStatusPago', {user_id: user.id})
+    })
+    console.log('----USER---', user)
     return {
       direccion,
       images,
@@ -279,7 +300,8 @@ export default defineComponent({
       dialogPago,
       linkDePago,
       enterado,
-      marcaEnterado
+      marcaEnterado,
+      datosNivel
     }
   },
   mounted () {

@@ -3,6 +3,7 @@ export default function () {
     usuario: null,
     stepActual: -1,
     olimpico: null,
+    level: null,
     statusPago: null
   }
 }
