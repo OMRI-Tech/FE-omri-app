@@ -163,6 +163,63 @@ export function dameNiveles () {
       // https://vimeo.com/464450253/0f7e51e463 	Decisiones
       // https://vimeo.com/464035466/5d9019ba80 	Bucle: iterate
       // ////  vt.temario_id>=46 and vt.temario_id <=46
+    ], [
+      {
+        step: 1,
+        tipo: 'video',
+        icon: 'hexa',
+        url: 'https://player.vimeo.com/video/464449540?h=bb1d6fb9c5&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+        title: 'Sensores de zumbadores'
+      },
+      {
+        step: 2,
+        tipo: 'video',
+        icon: 'hexa',
+        url: 'https://player.vimeo.com/video/464450253?h=0f7e51e463&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+        title: 'Decisiones'
+      },
+      {
+        step: 3,
+        tipo: 'video',
+        icon: 'hexa',
+        url: 'https://player.vimeo.com/video/464035466?h=5d9019ba80&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+        title: 'Bucle: iterate'
+      },
+      {
+        step: 4,
+        tipo: 'video',
+        icon: 'hexa',
+        url: 'https://player.vimeo.com/video/464057914?h=3812eae77c&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+        title: 'Bucle: while'
+      },
+      {
+        step: 5,
+        tipo: 'video',
+        icon: 'hexa',
+        url: 'https://player.vimeo.com/video/467745841?h=05feb6b7ac&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+        title: 'La receta para resolver problemas'
+      },
+      {
+        step: 6,
+        tipo: 'video',
+        icon: 'hexa',
+        url: 'https://player.vimeo.com/video/467748233?h=b0ea28a733&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+        title: 'Paso 1 y 2: Leer y hacer casos'
+      },
+      {
+        step: 7,
+        tipo: 'video',
+        icon: 'hexa',
+        url: 'https://player.vimeo.com/video/467752068?h=527e9e50fb&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+        title: 'Paso 3: Idea de solución'
+      },
+      {
+        step: 8,
+        tipo: 'video',
+        icon: 'hexa',
+        url: 'https://player.vimeo.com/video/467755446?h=35fc064241&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+        title: 'Paso 4: Programar solución'
+      }
     ]
   ]
   if(LocalStorage.getItem('user_logged').posible_paquete.paquete_id == 2){ // secun
@@ -279,6 +336,63 @@ export function dameNiveles () {
         // https://vimeo.com/464035466/5d9019ba80 	Bucle: iterate
         // https://vimeo.com/464057914/3812eae77c 	Bucle: while
         // vt.temario_id>=47 and vt.temario_id <=48
+      ], [
+        {
+          step: 1,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/464035466?h=5d9019ba80&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'Bucle: iterate'
+        },
+        {
+          step: 2,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/464057914?h=3812eae77c&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'Bucle: while'
+        },
+        {
+          step: 3,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/470793965?h=8360a7697e&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'Funciones | Función aTope'
+        },
+        {
+          step: 4,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/470816519?h=5b4d3d7357&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'Funciones con orientaciones'
+        },
+        {
+          step: 5,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/470837732?h=9c2a47e1aa&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'Funciones con zumbadores'
+        },
+        {
+          step: 6,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/463283054?h=58eaeb85fd&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'Método de resolución de problemas'
+        },
+        {
+          step: 7,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/466915115?h=5886bbb31c&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'Análisis: Un beeper en casa'
+        },
+        {
+          step: 8,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/473701788?h=e7ec3f5a43&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'Pila de llamadas'
+        }
       ]
     ]
     return nivelesSecundaria
@@ -402,6 +516,63 @@ export function dameNiveles () {
         /// se tienen vt.temario_id>=38 and vt.temario_id <=41
         // https://vimeo.com/450137466/3d70ff4965 	Lectura - Pizzas
         // https://vimeo.com/450180467/a0245e6d9e 	Análisis - Pizzas
+      ], [
+        {
+          step: 1,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/450137466?h=3d70ff4965&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'Lectura - Pizzas'
+        },
+        {
+          step: 2,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/450180467?h=a0245e6d9e&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'Análisis - Pizzas'
+        },
+        {
+          step: 3,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/450181011?h=e30b46f817&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'Resolución - Pizzas'
+        },
+        {
+          step: 4,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/439572603?h=b7af36a0a8&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'While'
+        },
+        {
+          step: 5,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/450131254?h=2e379bf1eb&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'Resolución de problema acomoda el número'
+        },
+        {
+          step: 6,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/471844010?h=ef39c37cee&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'For'
+        },
+        {
+          step: 7,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/473463888?h=9066fcc423&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'Implementación de for'
+        },
+        {
+          step: 8,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/439557917?h=50be67ce06&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'Fibonacci y sistemas de numeración'
+        }
       ]
     ]
     return nivelesPrepa
