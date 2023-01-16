@@ -2,7 +2,7 @@
     <div class="q-mt-md">
         <div v-for="(item, index) in cards" :key="index" class="row">
             <div v-for="(card, id) in item" :key="id" class="col text-center" >
-                <div :class="'main-rectangle q-pa-lg text-white text-subtitle2' + (card.value > round ?' no-mostrar': '') + (!card.checked ? ' carta-cerrada': '')">
+                <div :class="'main-rectangle q-pa-lg text-white text-subtitle2' + (card.value > round ?' no-mostrar': '') + (!card.checked ? ' carta-cerrada': '')" @click="levantarCarta(card)">
                     <div>
                         {{card.value + 1}}
                     </div>
@@ -18,6 +18,9 @@ import { reactive, ref } from 'vue'
  export default {
     name: 'mini2',
     setup () {
+        const sleep = (ms) => {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
         const shuffle = () => {
             let arr = [...Array(32).keys()]
             for(let i = 0; i < 64 ; i++){
@@ -40,11 +43,31 @@ import { reactive, ref } from 'vue'
             return arr2
         }
         const cards = reactive(shuffle())
-        const round = ref(5)
+        const round = ref(0)
         const nextCard = ref(0);
+        const levantarCarta = async (card) => {
+            if(card.value <= round.value){
+                if(nextCard.value == card.value){
+                    card.checked = true
+                    if(nextCard.value == round.value){
+                        await sleep(1000)
+                        cards.forEach(line => {
+                           line.forEach(card => {
+                            card.checked = false
+                           }) 
+                        })
+                        nextCard.value = 0
+                        round.value++
+                    } else {
+                        nextCard.value = nextCard.value + 1
+                    }
+                }
+            }
+        }
         return {
             cards,
-            round
+            round,
+            levantarCarta
         }
     }
  }
