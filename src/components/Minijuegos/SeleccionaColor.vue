@@ -37,11 +37,12 @@
             </div>
         </div>
         <q-dialog v-model="ModelDialog" persistent>
-            <q-card class="absolute-center text-center q-pa-lg">
+            <q-card class="absolute-center text-center q-pa-md">
                 <br>
                 Obtuviste {{score}} puntos
                 <br>
                 Tu máximo es {{maxScore}}
+                <br>
                 <q-btn flat color="teal q-mt-md" @click="volverMenu()">Menu</q-btn>
                 <q-btn flat color="teal q-mt-md" @click="volverAJugar()">
                     <q-icon name="refresh" color="teal"></q-icon>
@@ -58,7 +59,9 @@ import { onBeforeMount } from '@vue/runtime-core'
 import { useRouter } from 'vue-router'
 
 export default {
-    setup () {
+    name: 'mini1',
+    emits: ['volver'],
+    setup (props,ctx) {
         const router = useRouter()
         let random = Math.random()
         const tipoJuego = ref(Math.floor(Math.random() * 2) ? "COLOR" : "NOMBRE")
@@ -121,7 +124,7 @@ export default {
         }
         const timer = ref(0)
         const volverMenu = () => {
-            router.push({ name: 'Home' })
+            ctx.emit('volver')
         }
         const volverAJugar = () => {
             color.value = colores[Math.floor(random * 9)]
@@ -167,8 +170,8 @@ export default {
             timer,
             ModelDialog,
             dialog,
-            volverMenu,
-            volverAJugar
+            volverAJugar,
+            volverMenu
         }
     }
 }
