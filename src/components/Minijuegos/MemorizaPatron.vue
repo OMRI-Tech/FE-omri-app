@@ -2,22 +2,36 @@
     <div class="q-mt-md">
         <div v-for="(item, index) in cards" :key="index" class="row">
             <div v-for="(card, id) in item" :key="id" class="col text-center" >
-                <div :class="'main-rectangle q-pa-lg text-white text-subtitle2' + (card.value > round ?' no-mostrar': '') + (!card.checked ? ' carta-cerrada': '')" @click="levantarCarta(card)">
+                <div :class="'main-rectangle q-pa-md text-white text-subtitle2' + (card.value > round ?' no-mostrar': '') + (!card.checked ? ' carta-cerrada': '')" @click="levantarCarta(card)">
                     <div>
                         {{card.value + 1}}
                     </div>
                 </div>
             </div>
         </div>
+        <q-dialog v-model="ModelDialog" persistent>
+            <div class="absolute-center text-center q-pa-md bg-white">
+                Te quedaste en la ronda {{round}}
+                <br>
+                Tu máximo es {{max}}
+                <br>
+                <q-btn flat color="teal q-mt-md" @click="volverMenu()">Menu</q-btn>
+                <q-btn flat color="teal q-mt-md" @click="volverAJugar()">
+                    <q-icon name="refresh" color="teal"></q-icon>
+                </q-btn>
+            </div>
+        </q-dialog>
     </div>
  </template>
  
  <script>
+import { socialRedirect } from 'src/store/auth/actions';
 import { reactive, ref } from 'vue'
 
  export default {
     name: 'mini2',
-    setup () {
+    emits: ['volver'],
+    setup (props,ctx) {
         const sleep = (ms) => {
             return new Promise(resolve => setTimeout(resolve, ms));
         }
@@ -42,16 +56,18 @@ import { reactive, ref } from 'vue'
             }
             return arr2
         }
-        const cards = reactive(shuffle())
+        const cards = ref(shuffle())
         const round = ref(0)
         const nextCard = ref(0);
-        const levantarCarta = async (card) => {
+        const ModelDialog = ref(false)
+        const max = ref(0)
+        const levantarCarta = (card) => {
             if(card.value <= round.value){
                 if(nextCard.value == card.value){
                     card.checked = true
                     if(nextCard.value == round.value){
-                        await sleep(1000)
-                        cards.forEach(line => {
+                        sleep(1000)
+                        cards.value.forEach(line => {
                            line.forEach(card => {
                             card.checked = false
                            }) 
@@ -61,13 +77,30 @@ import { reactive, ref } from 'vue'
                     } else {
                         nextCard.value = nextCard.value + 1
                     }
+                } else {
+                    max.value = round.value > max.value ? round.value : max.value
+                    ModelDialog.value = true
                 }
             }
+        }
+        const volverMenu = () => {
+            ctx.emit('volver')
+        }
+        const volverAJugar = () => {
+            round.value = 0
+            nextCard.value = 0
+            cards.value = shuffle()
+            console.log(cards)
+            ModelDialog.value = false
         }
         return {
             cards,
             round,
-            levantarCarta
+            levantarCarta,
+            ModelDialog,
+            max,
+            volverMenu,
+            volverAJugar
         }
     }
  }
@@ -82,5 +115,8 @@ import { reactive, ref } from 'vue'
  }
  .carta-cerrada > div{
     opacity: 0;
+ }
+ .mostrar{
+    opacity: 1;
  }
  </style>
