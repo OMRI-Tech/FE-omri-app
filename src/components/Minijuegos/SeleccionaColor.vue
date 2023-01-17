@@ -1,5 +1,5 @@
 <template>
-    <div class="text-subtitle2">
+    <div class="text-subtitle2" style="font-size: 1.2rem;">
         <div class="text-center row q-pa-sm">
             <div class="col-8">
                 Selecciona por {{tipoJuego}}
@@ -37,12 +37,12 @@
             </div>
         </div>
         <q-dialog v-model="ModelDialog" persistent>
-            <q-card class="absolute-center text-center q-pa-lg">
-                {{dialog}}
+            <q-card class="absolute-center text-center q-pa-md">
                 <br>
                 Obtuviste {{score}} puntos
                 <br>
                 Tu máximo es {{maxScore}}
+                <br>
                 <q-btn flat color="teal q-mt-md" @click="volverMenu()">Menu</q-btn>
                 <q-btn flat color="teal q-mt-md" @click="volverAJugar()">
                     <q-icon name="refresh" color="teal"></q-icon>
@@ -59,7 +59,9 @@ import { onBeforeMount } from '@vue/runtime-core'
 import { useRouter } from 'vue-router'
 
 export default {
-    setup () {
+    name: 'mini1',
+    emits: ['volver'],
+    setup (props,ctx) {
         const router = useRouter()
         let random = Math.random()
         const tipoJuego = ref(Math.floor(Math.random() * 2) ? "COLOR" : "NOMBRE")
@@ -69,11 +71,11 @@ export default {
         const ModelDialog = ref(false)
         const dialog = ref("")
         const colores = reactive([
-            { label: 'Amarillo', color: 'yellow', count: 0 },
+            { label: 'Negro', color: '', count: 0 },
             { label: 'Verde', color: 'green', count: 0 },
             { label: 'Azul', color: 'blue', count: 0 },
-            { label: 'Rosa', color: 'pink', count: 0 },
-            { label: 'Rojo', color: 'red', count: 0 },
+            { label: 'Rosa', color: 'pink-6', count: 0 },
+            { label: 'Rojo', color: 'red-9', count: 0 },
             { label: 'Gris', color: 'grey', count: 0 },
             { label: 'Café', color: 'brown', count: 0 },
             { label: 'Morado', color: 'purple', count: 0},
@@ -114,26 +116,22 @@ export default {
                 score.value -= (!item.isTheColor && !item.checked) * 35
                 count.value -= (item.isTheColor && !item.checked)
                 item.checked = true
-                ModelDialog.value = (count.value == 0)
-                if (ModelDialog.value){
-                    dialog.value = "Ganaste!"
-                    maxScore.value = score.value > maxScore.value ? score.value : maxScore.value
-                }
             }
         }
         const timerValue = () => {
             const now = new Date(Date.now())
-            return 20 - (now - timeMounted.value)/1000
+            return 60 - (now - timeMounted.value)/1000
         }
         const timer = ref(0)
         const volverMenu = () => {
-            router.push({ name: 'Home' })
+            ctx.emit('volver')
         }
         const volverAJugar = () => {
             color.value = colores[Math.floor(random * 9)]
             tipoJuego.value = Math.floor(Math.random() * 2) ? "COLOR" : "NOMBRE"
             random = Math.random()
             do {
+                count.value = 0
                 limpiarColores()
                 mezclarColores()
             } while (count.value == 0);
@@ -142,13 +140,20 @@ export default {
             score.value = 0
         }
         setInterval(() => {
-            timer.value = (timerValue() > 0 && count.value > 0) ? timerValue() : 0
-            if (timer.value == 0 && count.value > 0){
+            timer.value = (timerValue() > 0) ? timerValue() : 0
+            if (timer.value == 0){
                 ModelDialog.value = true
-                dialog.value = "Fallaste por muy poco :("
                 maxScore.value = score.value > maxScore.value ? score.value : maxScore.value
             }
-        }, 250)
+            if (count.value == 0){
+                color.value = colores[Math.floor(random * 9)]
+                tipoJuego.value = Math.floor(Math.random() * 2) ? "COLOR" : "NOMBRE"
+                do{
+                    limpiarColores()
+                    mezclarColores()
+                } while (count.value == 0)
+            }
+        }, 100)
         onBeforeMount(() => {
             while(count.value == 0){
                 mezclarColores()
@@ -165,8 +170,8 @@ export default {
             timer,
             ModelDialog,
             dialog,
-            volverMenu,
-            volverAJugar
+            volverAJugar,
+            volverMenu
         }
     }
 }
