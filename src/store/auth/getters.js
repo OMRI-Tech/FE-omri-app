@@ -220,6 +220,56 @@ export function dameNiveles () {
         url: 'https://player.vimeo.com/video/467755446?h=35fc064241&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
         title: 'Paso 4: Programar solución'
       }
+    ], [
+      {
+        step: 1,
+        tipo: 'video',
+        icon: 'hexa',
+        url: 'https://player.vimeo.com/video/472899066?h=a9f92e45e4&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+        title: 'Definir funciones'
+      }, {
+        step: 2,
+        tipo: 'video',
+        icon: 'hexa',
+        url: 'https://player.vimeo.com/video/472900406?h=80363bbaa8&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+        title: 'Funciones usando sensores de brújula'
+      }, {
+        step: 3,
+        tipo: 'video',
+        icon: 'hexa',
+        url: 'https://player.vimeo.com/video/473704553?h=2c79679369&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+        title: 'Funciones: comeTodo y dejaTodo'
+      }, {
+        step: 4,
+        tipo: 'video',
+        icon: 'hexa',
+        url: 'https://player.vimeo.com/video/473705728?h=8158885906&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+        title: 'Funciones: caminaConGasolina y caminaEnZumbadores'
+      }, {
+        step: 5,
+        tipo: 'video',
+        icon: 'hexa',
+        url: 'https://player.vimeo.com/video/473710786?h=cdf6881de6&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+        title: 'Funciones: aTope y rectangulo.'
+      }, {
+        step: 6,
+        tipo: 'video',
+        icon: 'hexa',
+        url: 'https://player.vimeo.com/video/473701788?h=e7ec3f5a43&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+        title: 'Pila de llamadas'
+      }, {
+        step: 7,
+        tipo: 'video',
+        icon: 'hexa',
+        url: 'https://player.vimeo.com/video/473727030?h=caf5b6dfdb&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+        title: 'Recursión en la vida cotidiana'
+      }, {
+        step: 8,
+        tipo: 'video',
+        icon: 'hexa',
+        url: 'https://player.vimeo.com/video/474102515?h=f787137b94&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+        title: 'Freno de la recursión'
+      }
     ]
   ]
   if(LocalStorage.getItem('user_logged').posible_paquete.paquete_id == 2){ // secun
@@ -392,6 +442,56 @@ export function dameNiveles () {
           icon: 'hexa',
           url: 'https://player.vimeo.com/video/473701788?h=e7ec3f5a43&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
           title: 'Pila de llamadas'
+        }
+      ], [
+        {
+          step: 1,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/463281084?h=d76b720d22&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'Cómo crear cuenta en Karelotitlán y hacer envíos'
+        }, {
+          step: 2,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/473705728?h=8158885906&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'Funciones: caminaConGasolina y caminaEnZumbadores'
+        }, {
+          step: 3,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/473710786?h=cdf6881de6&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'Funciones: aTope y rectangulo.'
+        }, {
+          step: 4,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/473727030?h=caf5b6dfdb&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'Recursión en la vida cotidiana'
+        }, {
+          step: 5,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/474102515?h=f787137b94&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'Freno de la recursión'
+        }, {
+          step: 6,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/474107788?h=93d1b8890b&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'Contar casillas hasta llegar a pared'
+        }, {
+          step: 7,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/479353725?h=3bbf437abe&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'Usando el freno de la recursión'
+        }, {
+          step: 8,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/479375776?h=ce96efab5f&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'Sacando área sumando'
         }
       ]
     ]
@@ -572,6 +672,56 @@ export function dameNiveles () {
           icon: 'hexa',
           url: 'https://player.vimeo.com/video/439557917?h=50be67ce06&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
           title: 'Fibonacci y sistemas de numeración'
+        }
+      ], [
+        {
+          step: 1,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/469623118?h=df28c5be2e&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'Números primos, sumatoria y Fibonacci'
+        }, {
+          step: 2,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/467106886?h=f46c46185c&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'Combinatoria'
+        }, {
+          step: 3,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/470433097?h=242662cad2&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'Introducción a funciones'
+        }, {
+          step: 4,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/470025072?h=02cfaeea27&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'Funciones en Blockly'
+        }, {
+          step: 5,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/473714773?h=04f8270516&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'Introducción a arreglos'
+        }, {
+          step: 6,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/441146024?h=a7cc2c486c&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'Invertir un arreglo'
+        }, {
+          step: 7,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/461041453?h=a1e7821ea5&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'Codeblocks'
+        }, {
+          step: 8,
+          tipo: 'video',
+          icon: 'hexa',
+          url: 'https://player.vimeo.com/video/452678843?h=89fb557c13&amp;title=0&amp;byline=0&amp;portrait=0&amp;speed=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479',
+          title: 'Ordenamiento'
         }
       ]
     ]
