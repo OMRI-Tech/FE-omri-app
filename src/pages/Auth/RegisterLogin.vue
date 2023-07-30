@@ -1,6 +1,5 @@
 <template>
   <div class="fullscreen">
-    <countdown-timer :targetDateTime="'September 11, 2023 00:00:00'" :countdownMessage="'Tiempo restante para la apertura de la convocatoria:'"></countdown-timer>
     <div class="items-center back">
       <img :src="images.cloudUp" class="cloud-up" />
       <img :src="images.cloudDown" class="cloud-down" />
@@ -201,20 +200,15 @@
 </template>
 
 <script>
-import { ref, defineComponent, reactive, computed, onBeforeMount, onMounted } from 'vue'
+import { ref, defineComponent, reactive, computed, onBeforeMount, onMounted, onBeforeUnmount } from 'vue'
 import { auth, db, provider } from "boot/firebase";
 import { createUserWithEmailAndPassword, getRedirectResult, signOut, getAuth } from "firebase/auth";
 import { useStore } from 'vuex'
 import { useRoute } from 'vue-router'
 import { Loading, QSpinnerBall, Notify } from 'quasar'
 import * as API from 'src/store/Api'
-import CountdownTimer from "components/CountdownTimer.vue"
-import 'animate.css'
 
 export default defineComponent({
-  components: {
-    CountdownTimer
-  },
   setup () {
     const images = {
       logoFacebook: require('assets/logos/facebook.png'),
