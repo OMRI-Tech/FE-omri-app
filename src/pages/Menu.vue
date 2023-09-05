@@ -118,7 +118,7 @@
 </template>
 
 <script>
-import { defineComponent, onMounted, beforeMounted, ref, computed } from 'vue'
+import { defineComponent, onMounted, ref, computed } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import { Loading, QSpinnerBall } from 'quasar'
@@ -277,10 +277,9 @@ export default defineComponent({
       }
       setInterval(animameEsta, 6500)
     })
-    beforeMounted(()=>{
       console.log()
       store.dispatch('auth/determinaStatusPago', {user_id: user.id})
-    })
+
     console.log('----USER---', user)
     return {
       direccion,
