@@ -252,15 +252,14 @@
                   <p>Puedes entrenar desde {{ formatDateTime(edition.training_starts_at) }} aunque el pago siga pendiente. Paga hasta {{ formatDateTime(edition.payment_closes_at) }}.</p>
                   <div v-if="paymentWindowOpen">
                     <p v-if="paymentLinkError" class="text-negative">{{ paymentLinkError }}</p>
-                    <!-- Opción de pago en OXXO -->
                     <div>
-                      <h6 class="q-my-sm">Pago en OXXO</h6>
-                      <p>Haz clic en el botón de abajo para obtener una referencia de pago. Puedes pagar en cualquier sucursal de OXXO.</p>
+                      <h6 class="q-my-sm">Opciones de pago</h6>
+                      <p>Abre el checkout vigente para pagar en OXXO, con tarjeta o mediante transferencia bancaria.</p>
                       <q-btn
                         v-if="link"
                         :ripple="{ color: 'yellow' }"
                         style="background: #ed358a"
-                        label="Pagar en OXXO"
+                        label="Abrir checkout: OXXO, tarjeta o transferencia"
                         size="xl"
                         :href="link"
                         target="_blank"
@@ -279,16 +278,6 @@
                         :label="link ? 'Reenviar enlace' : 'Recuperar enlace'"
                       ></q-btn>
                       <p class="q-pt-sm">Si no recibiste el enlace, puedes recuperarlo o reenviarlo aquí.</p>
-                    </div>
-                    <!-- Opción de pago por transferencia bancaria -->
-                     <hr/>
-                    <div>
-                      <h6 class="q-my-sm">Pago por transferencia bancaria</h6>
-                      <p>Realiza una transferencia por <strong><mark>{{ formatFee(edition.fee_mxn) }}</mark></strong> a la siguiente cuenta CLABE BBVA:</p>
-                      <a style="font-size: 25px; color: white !important" href="tel:012540001162431420">012 540 00116243142 0</a>
-                      <p>A nombre de: Olimpiada Morelense de Informática AC</p>
-                      <p>Coloca en el concepto tu número de folio: <strong>{{ user.id }}</strong></p>
-                      <p>Después de realizar la transferencia, envía el comprobante a <a href="mailto:info@omri.org.mx">info@omri.org.mx</a></p>
                     </div>
                   </div>
                   <p v-else class="text-negative">
@@ -583,6 +572,34 @@ export default defineComponent({
       savedSession.value = { id: sessionProfile.id, email: sessionProfile.email || '' }
       return true
     }
+    const profileForEdition = (profile, currentEdition) => {
+      const courseId = Number(currentEdition.course_id)
+      const existingAssociation = profile && profile.posible_paquete && typeof profile.posible_paquete === 'object'
+        ? profile.posible_paquete
+        : {}
+      const associationMatches = Number(existingAssociation.paquete_id) === courseId
+      const existingPackage = associationMatches && existingAssociation.paquete && typeof existingAssociation.paquete === 'object'
+        ? existingAssociation.paquete
+        : {}
+      const association = {
+        ...(associationMatches ? existingAssociation : {}),
+        paquete_id: courseId,
+        paquete: {
+          ...existingPackage,
+          id: courseId,
+          paquete_id: courseId,
+          nombre_paquete: currentEdition.course_name
+        }
+      }
+      return {
+        ...profile,
+        omri_enrolled: true,
+        omri_edition: currentEdition.edition,
+        course_id: courseId,
+        course_name: currentEdition.course_name,
+        posible_paquete: association
+      }
+    }
     const credentialsHelpMessage = 'No pudimos validar el correo y la contraseña. Revisa tus datos o usa el acceso por WhatsApp desde Iniciar sesión.'
     const isCredentialFailure = result => {
       const status = Number(result && (result.response && result.response.status ? result.response.status : result.status))
@@ -657,7 +674,10 @@ export default defineComponent({
         omri_enrolled: omriEnrolled.value,
         course_id: omriEnrolledCourseId.value
       }
-      if (!persistAuthenticatedSession(authenticatedProfile, response.access_token, true)) return false
+      const sessionProfile = omriEnrolled.value && Number(omriEnrolledCourseId.value) === Number(currentEdition.course_id)
+        ? profileForEdition(authenticatedProfile, currentEdition)
+        : authenticatedProfile
+      if (!persistAuthenticatedSession(sessionProfile, response.access_token, true)) return false
       populateProfileForm(profile, user.value.email.trim())
       cargoId.value = null
       link.value = ''
@@ -759,11 +779,7 @@ export default defineComponent({
       paymentLinkError.value = ''
       link.value = typeof enrollment.payment_url === 'string' ? enrollment.payment_url : ''
       step.value = 3
-      persistAuthenticatedSession({
-        ...(LocalStorage.getItem('user_logged') || {}),
-        omri_enrolled: true,
-        course_id: Number(currentEdition.course_id)
-      })
+      persistAuthenticatedSession(profileForEdition(LocalStorage.getItem('user_logged') || {}, currentEdition))
       trackCompleteRegistrationEvent(enrollment.cargo_id)
       if (inscripcionPagada.value) {
         link.value = ''

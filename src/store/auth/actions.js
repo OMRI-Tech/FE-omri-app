@@ -19,7 +19,7 @@ export function Login ({}, params) {
       let token = null
       if (response.status === 1) {
         token = response.access_token
-        user = response.data
+        user = profileWithEditionStatus(response.data, response)
         API.Utils.Notifica('¡Sesión Iniciada!', `Bienvenido ${user.name}!`, true, 'top')
       } else {
         API.Utils.Notifica('¡Contraseña Incorrecta!', `La contraseña no coincide, vuelve a intentarlo`, false, 'top')
@@ -46,8 +46,28 @@ export function Logout () {
   this.$router.push({ name: 'Login' })
 }
 
-function realLogin(commit, userDB, user, token, formData) {
+function profileWithEditionStatus (user, response) {
+  const profile = user && typeof user === 'object' ? user : {}
+  const authenticatedResponse = response && typeof response === 'object' ? response : {}
+  const sessionProfile = { ...profile }
+  if (authenticatedResponse.omri_enrolled !== undefined) {
+    sessionProfile.omri_enrolled = authenticatedResponse.omri_enrolled
+  }
+  if (authenticatedResponse.course_id !== undefined) {
+    sessionProfile.course_id = authenticatedResponse.course_id
+  }
+  if (authenticatedResponse.edition !== undefined) {
+    sessionProfile.omri_edition = authenticatedResponse.edition
+  }
+  if (authenticatedResponse.course_name !== undefined) {
+    sessionProfile.course_name = authenticatedResponse.course_name
+  }
+  return sessionProfile
+}
+
+function realLogin(commit, userDB, user, token, formData, loginResponse) {
   if (token !== null) {
+    user = profileWithEditionStatus(user, loginResponse)
     LocalStorage.set('user_logged', user)
     LocalStorage.set('api_token', token)
     LocalStorage.set('avatar', user.avatar)
@@ -87,7 +107,7 @@ export async function loginFirebase ({ commit }, details) {
           token = response.access_token
           user = response.data
           /// se actualiza contraseña y firebase
-          realLogin(commit, userDB, user, token, formData)
+          realLogin(commit, userDB, user, token, formData, response)
         }
         API.Utils.Notifica(token === null ? '¡Contraseña Incorrecta!' : '¡Sesión Iniciada!',
           token === null ? 'La contraseña no coincide, vuelve a intentarlo' : `Bienvenido ${user.name}!`,
@@ -121,7 +141,7 @@ export async function loginFirebase ({ commit }, details) {
                 details.password
               ).then((userCredential) => {
                 const userDB = userCredential.user;
-                realLogin(commit, userDB, user, token, formData)
+                realLogin(commit, userDB, user, token, formData, response)
               })
               .catch((error) => {
                 console.error('error codigo', error.code)
@@ -210,7 +230,7 @@ export async function registerFirebase ({ commit }, details) {
                 if (response.status === 1) {
                   let token = response.access_token
                   let user = response.data
-                  realLogin(commit, userDB, user, token, formData)
+                  realLogin(commit, userDB, user, token, formData, response)
                 } else {
                   Notify.create({
                     message: 'Ocurrió un error al actualizar olímpico',
@@ -243,7 +263,7 @@ export async function registerFirebase ({ commit }, details) {
                   /// el usuario fue agregado existosamente
                   let token = response.access_token
                   let user = response.data
-                  realLogin(commit, userDB, user, token, formData)
+                  realLogin(commit, userDB, user, token, formData, response)
                 } else {
                   console.error(response)
                   /// el usuario no se agregó porque ya existe
@@ -358,9 +378,12 @@ export async function actualizaDatosPersonales ({}, details) {
     response => {
       if (response.status === 1) {
         API.Utils.Notifica('Todo está guardado', 'Tu información está actualizada', true, 'top')
-        LocalStorage.set('user_logged', response.data)
+        const existingProfile = LocalStorage.getItem('user_logged')
+        const updatedProfile = response.data && typeof response.data === 'object' ? response.data : {}
+        const sessionProfile = profileWithEditionStatus({ ...(existingProfile || {}), ...updatedProfile }, response)
+        LocalStorage.set('user_logged', sessionProfile)
         LocalStorage.set('api_token', response.access_token)
-        LocalStorage.set('avatar', response.data.avatar)
+        LocalStorage.set('avatar', sessionProfile.avatar || '')
         if (typeof callback === 'function') {
           callback()
         }

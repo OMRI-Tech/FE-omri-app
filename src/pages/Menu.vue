@@ -3,9 +3,15 @@
     <div class="main-rectangle row">
       <div class="info-rectangle col">
         <p class="txt-title">Bienvenido {{ user.name }} </p>
-        <p class="txt-progress">Progreso</p>
-        <q-linear-progress rounded :value="0.3" size="8px" class="q-my-sm" />
-        <p class="txt-level">Categoría: {{ user.posible_paquete.paquete.nombre_paquete }}</p>
+        <template v-if="!isOmriEdition">
+          <p class="txt-progress">Progreso</p>
+          <q-linear-progress rounded :value="0.3" size="8px" class="q-my-sm" />
+          <p class="txt-level">Categoría: {{ categoryName }}</p>
+        </template>
+        <template v-else>
+          <p class="txt-level">Edición: {{ categoryName }}</p>
+          <p class="q-mb-none">El acceso al entrenamiento no depende de que el pago esté confirmado.</p>
+        </template>
       </div>
       <div class="info-image column inline justify-end">
         <q-img class="q-mx-auto squares" :src="images.squares" spinner-color="white" />
@@ -13,7 +19,7 @@
       </div>
     </div>
 
-    <div class="main-container">
+    <div v-if="levels.length" class="main-container">
       <div class="entrenator-background vector">
         <div class="info">
           <p>{{ datosNivel.name }}</p>
@@ -40,6 +46,20 @@
           </div>
         </div>
       </div>
+    </div>
+    <div v-else class="q-pa-xl text-center">
+      <div class="text-h5 q-mb-md">{{ isOmriEdition ? 'Entrenamiento de esta edición' : 'Contenido no disponible' }}</div>
+      <p v-if="isOmriEdition">
+        El contenido del entrenamiento se habilitará aquí cuando esté disponible. Tu acceso no depende de que el pago esté confirmado.
+      </p>
+      <p v-else>Esta cuenta no tiene contenido de entrenamiento disponible.</p>
+      <q-btn
+        v-if="isOmriEdition"
+        color="primary"
+        no-caps
+        :to="{ name: 'Register' }"
+        label="Consultar inscripción o recuperar enlace de pago"
+      />
     </div>
     <q-dialog v-model="dialogPerfilIncompleto" persistent transition-show="scale" transition-hide="scale">
       <q-card class="text-white main-rectangle" style="width: 500px">
@@ -140,6 +160,15 @@ export default defineComponent({
     const linkDePago = ref('')
     const enterado = ref(false)
     const user = store.getters['auth/user']
+    const packageName = user && user.posible_paquete && user.posible_paquete.paquete
+      ? user.posible_paquete.paquete.nombre_paquete
+      : ''
+    const isOmriEdition = Boolean(
+      ((user && (user.omri_edition || user.omri_enrolled)) && Number(user.course_id) > 0) ||
+      String(packageName || '').trim().toLocaleUpperCase() === 'XX OMRI'
+    )
+    const categoryName = (user && user.course_name) || packageName || (user && user.omri_edition) ||
+      (isOmriEdition ? 'Edición activa' : 'Sin categoría')
     var niveles = store.getters['auth/dameNiveles']
     const progresoGlobal = () => { return store.getters['auth/dameProgreso'] }
     const functionInscripcionPagada = () => { return store.getters['auth/inscripcionPagada']}
@@ -148,16 +177,18 @@ export default defineComponent({
       enterado.value = true
     }
     const levels = computed(() => {
+      if (!Array.isArray(niveles) || !niveles.length) return []
       var progreso = progresoGlobal()
       let datos = store.getters['auth/dameDatosNivel']
       if(datos === null){
-        datos = user.nivel;
+        datos = user && user.nivel
       }
+      if (!datos || !datos.id) return []
       console.log('niveles: ', niveles[datos.id - 1], datos)
       return niveles[datos.id - 1] !== undefined && progreso !== null ? niveles[datos.id - 1].map((v, i) => {
         let progress = progreso.filter(p => p.step == v.step)
         return {...v, status: progress.length ? (progress[0].realizado == 0 ? 'done' : 'visited') : '' }
-      }) : null
+      }) : []
     })
     const datosNivel = computed(() => {
       let datos = store.getters['auth/dameDatosNivel']
@@ -167,6 +198,7 @@ export default defineComponent({
       return datos
     })
     const dialogPago = computed(() => {
+      if (isOmriEdition) return false
       let statusPago = functionInscripcionPagada()
       if(!statusPago){
         if(enterado.value){
@@ -279,7 +311,7 @@ export default defineComponent({
     })
     onBeforeMount(()=>{
       console.log()
-      store.dispatch('auth/determinaStatusPago', {user_id: user.id})
+      if (!isOmriEdition) store.dispatch('auth/determinaStatusPago', {user_id: user.id})
     })
     console.log('----USER---', user)
     return {
@@ -287,6 +319,8 @@ export default defineComponent({
       images,
       desplazamiento,
       user,
+      isOmriEdition,
+      categoryName,
       dialogPerfilIncompleto,
       levels,
       urlVideo,

@@ -52,6 +52,20 @@ export function dameDatosDePago(state) {
 }
 
 export function dameNiveles () {
+  const activeUser = LocalStorage.getItem('user_logged')
+  if (!activeUser || typeof activeUser !== 'object') return []
+  const possiblePackage = activeUser.posible_paquete && typeof activeUser.posible_paquete === 'object'
+    ? activeUser.posible_paquete
+    : null
+  const packageName = possiblePackage && possiblePackage.paquete && possiblePackage.paquete.nombre_paquete
+  const isEditionEnrollment = Boolean(
+    ((activeUser.omri_edition || activeUser.omri_enrolled) && Number(activeUser.course_id) > 0) ||
+    String(packageName || '').trim().toLocaleUpperCase() === 'XX OMRI'
+  )
+  if (isEditionEnrollment) return []
+  const packageId = Number(possiblePackage && possiblePackage.paquete_id)
+  if (![1, 2, 3].includes(packageId)) return []
+
   const nivelesPrimaria = [
     [
       {
