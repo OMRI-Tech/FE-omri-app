@@ -235,17 +235,17 @@
                         no-caps
                       />
                       <br/>
-                      <!-- Botón para generar un nuevo link de pago en caso de no haber recibido el anterior -->
+                      <!-- Recupera o reenvía el enlace vigente del cargo -->
                       <q-btn
                         class="bg-blue q-mt-md"
                         v-if="cargoId && !inscripcionPagada"
                         rounded
                         type="button"
-                        @click="creaLink"
+                        @click="recuperaLink"
                         :loading="linkLoading"
-                        :label="link ? 'Generar nuevo link de pago' : 'Obtener link de pago'"
+                        :label="link ? 'Reenviar enlace' : 'Recuperar enlace'"
                       ></q-btn>
-                      <p class="q-pt-sm">Si no recibiste el link o venció, puedes generar uno nuevo.</p>
+                      <p class="q-pt-sm">Si no recibiste el enlace, puedes recuperarlo o reenviarlo aquí.</p>
                     </div>
                     <!-- Opción de pago por transferencia bancaria -->
                      <hr/>
@@ -299,6 +299,7 @@ import { ref, defineComponent, reactive, computed, onBeforeMount, onBeforeUnmoun
 import { useStore } from 'vuex'
 import { useRoute } from 'vue-router'
 import { Loading, QSpinnerBall, Notify, useQuasar } from 'quasar'
+import axios from 'axios'
 import * as API from 'src/store/Api'
 import CountdownTimer from "components/CountdownTimer.vue"
 import DrawerMenu from "components/DrawerMenu.vue"
@@ -497,6 +498,11 @@ export default defineComponent({
         color: 'negative'
       })
     }
+    const setApiAuthorization = accessToken => {
+      if (typeof accessToken !== 'string' || !accessToken.trim()) return false
+      axios.defaults.headers.common.Authorization = `Bearer ${accessToken.trim()}`
+      return true
+    }
     const loadEdition = () => new Promise(resolve => {
       editionLoading.value = true
       editionError.value = ''
@@ -529,7 +535,7 @@ export default defineComponent({
         }
       )
     })
-    const requestPaymentLink = regenerate => {
+    const requestPaymentLink = () => {
       if (!cargoId.value) {
         paymentLinkError.value = 'No encontramos un cargo pendiente de esta edición.'
         return
@@ -541,12 +547,10 @@ export default defineComponent({
       }
       paymentLinkError.value = ''
       linkLoading.value = true
-      const params = { cargo_id: cargoId.value }
-      if (regenerate) params.ignora = 'true'
       API.Request.Get(
-        'Recuperando link de pago...',
+        'Recuperando enlace de pago...',
         API.Model('Auth').payLink,
-        params,
+        { cargo_id: cargoId.value },
         response => {
           const paymentUrl = Number(response && response.status) === 1 && response.data
           if (typeof paymentUrl !== 'string' || !paymentUrl.trim()) {
@@ -555,8 +559,8 @@ export default defineComponent({
           } else {
             link.value = paymentUrl.trim()
             Notify.create({
-              message: regenerate ? 'Se generó un nuevo link de pago' : 'Tu inscripción quedó guardada',
-              caption: 'El pago está pendiente; puedes comenzar el entrenamiento en la fecha indicada.',
+              message: 'Enlace de pago disponible',
+              caption: 'Recuperamos el enlace vigente de tu cargo. El pago sigue pendiente.',
               avatar: require('assets/img/entrenator.png'),
               color: 'positive'
             })
@@ -620,6 +624,11 @@ export default defineComponent({
             notifyError('No pudimos guardar tus datos', responseMessage(response, 'Intenta más tarde.'))
             return
           }
+          if (!setApiAuthorization(response.access_token)) {
+            Loading.hide()
+            notifyError('No pudimos autenticar tu cuenta', 'No recibimos el token necesario para confirmar la inscripción y recuperar el enlace de pago. Intenta de nuevo o contacta a info@omri.org.mx.')
+            return
+          }
           API.Request.Post(
             'Registrando inscripción...',
             API.Model('Auth').createOmriEnrollment,
@@ -664,7 +673,7 @@ export default defineComponent({
                     color: 'positive'
                   })
                 } else {
-                  requestPaymentLink(false)
+                  requestPaymentLink()
                 }
               }
             },
@@ -789,8 +798,8 @@ export default defineComponent({
         }
       )
     }
-    const creaLink = () => {
-      requestPaymentLink(true)
+    const recuperaLink = () => {
+      requestPaymentLink()
     }
     watch(user.value, newVal => {
       const isConTypo = newVal.email.endsWith('.con');
@@ -845,7 +854,7 @@ export default defineComponent({
       registroEmail,
       reiniciar,
       actualizacionDatos,
-      creaLink,
+      recuperaLink,
       inscripcionPagada,
       paymentLinkError,
       linkLoading,
