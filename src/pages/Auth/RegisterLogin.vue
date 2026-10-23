@@ -66,7 +66,7 @@
             >
               <q-step
                 :name="1"
-                title="Paso 1: Registrate con tu correo electrónico"
+                title="Paso 1: Accede con tu correo"
                 icon="settings"
                 :done="step > 1"
               >
@@ -80,21 +80,56 @@
 
                   Si has participado en anteriores OMRI, escribe el correo con el que te registraste
                 </q-banner>
-                <p class="title-account or">- REGISTRATE CON TU CORREO  -</p>
+                <p class="title-account or">- INICIA SESIÓN O CREA TU CUENTA -</p>
                 <q-form class="form-register" align="center" @submit.prevent="registroEmail">
-                  <q-badge color="green" label="Cada participante debe registrarse con su correo propio"></q-badge>
+                  <q-badge color="green" label="Cada participante debe usar su propio correo y contraseña"></q-badge>
+                  <p v-if="edition.enrollment_open" class="text-caption q-mb-none">
+                    Si es tu primera vez, la cuenta se creará mientras la admisión esté abierta.
+                  </p>
+                  <p v-else class="text-caption q-mb-none">
+                    La admisión cerró. Inicia sesión con la cuenta que ya inscribiste en esta edición.
+                  </p>
                   <q-input
                     dense v-model="user.email"
                     class="q-my-sm text-button"
                     label="Correo electrónico*" color="teal"
-                    :rules="[val => val.trim() !== '' || 'Campo no válido']"
+                    autocomplete="email"
+                    type="email"
+                    :rules="[val => val && val.trim() !== '' || 'Campo no válido']"
                   />
+                  <q-input
+                    dense v-model="user.password"
+                    class="q-my-sm text-button"
+                    :type="isPwd ? 'password' : 'text'"
+                    label="Contraseña*" color="teal"
+                    autocomplete="current-password"
+                    :rules="[val => val && val.trim() !== '' || 'Campo no válido']"
+                  >
+                    <template v-slot:append>
+                      <q-icon
+                        :name="isPwd ? 'visibility_off' : 'visibility'"
+                        class="cursor-pointer"
+                        @click="isPwd = !isPwd"
+                      />
+                    </template>
+                  </q-input>
+                  <p class="text-caption q-mb-none">
+                    Si no recuerdas tu contraseña, usa el acceso por WhatsApp desde Iniciar sesión.
+                  </p>
                   <q-btn
                     rounded
                     class="q-ma-md full-width button-submit text-button animate__animated animate__pulse animate__infinite"
                     type="submit"
                     label="Continuar"
                     :disabled = verification
+                  />
+                  <q-btn
+                    flat
+                    type="button"
+                    :to="{ name: 'Login' }"
+                    color="blue"
+                    no-caps
+                    label="Ir a Iniciar sesión / acceso por WhatsApp"
                   />
                 </q-form>
               </q-step>
@@ -177,25 +212,11 @@
                     <q-input dense v-model="nuevaEscuelaModel" placeholder="Escribe el nombre de tu escuela" hint="Nombre *"/>
                     <q-btn @click="nuevaEscuela()" color="blue" no-caps flat dense type="button" label="Buscar escuela"/>
                   </div>
-                  <q-input
-                    dense v-model="user.password"
-                    class="q-my-sm text-button hidden"
-                    :type="isPwd ? 'password' : 'text'"
-                    label="Contraseña*" color="teal"
-                  >
-                    <template v-slot:append>
-                      <q-icon
-                        :name="isPwd ? 'visibility_off' : 'visibility'"
-                        class="cursor-pointer"
-                        @click="isPwd = !isPwd"
-                      />
-                    </template>
-                  </q-input>
                   <q-btn
                     rounded
                     class="q-mx-md full-width button-submit text-button"
                     type="submit"
-                    label="Finalizar registro"
+                    label="Guardar y continuar"
                     :disabled = verificationFull
                   />
                   <q-btn
@@ -449,13 +470,12 @@ export default defineComponent({
     const route = useRoute()
     const verification = computed(() => {
       const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-      return !emailRegex.test(user.value.email);
+      return !emailRegex.test(user.value.email.trim()) || !user.value.password.trim();
     });
     const verificationFull = computed(() => {
       var Valid = (user.value.name !== '')
       Valid = (Valid & user.value.lname.trim() !== '')
       Valid = (Valid & (user.value.email.includes('@') & user.value.email.includes('.')))
-      Valid = (Valid & user.value.password.trim() !== '')
       Valid = (Valid & (String(user.value.birthdate).length > 6))
       Valid = (Valid & (String(user.value.telNum).length >= 10))
       Valid = (Valid & (user.value.grado !== null))
@@ -519,6 +539,81 @@ export default defineComponent({
     const setApiAuthorization = accessToken => {
       if (typeof accessToken !== 'string' || !accessToken.trim()) return false
       axios.defaults.headers.common.Authorization = `Bearer ${accessToken.trim()}`
+      return true
+    }
+    const credentialsHelpMessage = 'No pudimos validar el correo y la contraseña. Revisa tus datos o usa el acceso por WhatsApp desde Iniciar sesión.'
+    const isCredentialFailure = result => {
+      const status = Number(result && (result.response && result.response.status ? result.response.status : result.status))
+      if (status === 401) return true
+      const details = result && result.response && result.response.data ? result.response.data : result
+      return Number(details && details.status) === 0 && details.verificacion === false &&
+        String(details.title || '').trim().toLocaleLowerCase() === 'contraseña no verificada'
+    }
+    const isDuplicateAccountFailure = result => {
+      const status = Number(result && (result.status || (result.response && result.response.status)))
+      const details = result && result.response && result.response.data ? result.response.data : result
+      const code = [details && details.error, details && details.code, details && details.title,
+        details && details.msg, details && details.message, JSON.stringify(details && details.errors || {})]
+        .filter(Boolean).join(' ').toLowerCase()
+      return status === 409 || /(duplicate|duplicad|already.{0,24}(registered|taken|exists)|email.{0,24}(registered|taken|exists)|correo.{0,24}(registrad|existe)|already been taken)/.test(code)
+    }
+    const profileValue = (profile, ...keys) => {
+      for (const key of keys) {
+        const value = profile && profile[key]
+        if (value !== null && value !== undefined && value !== '') return value
+      }
+      return ''
+    }
+    const setAuthenticatedProfile = (response, currentEdition) => {
+      const profile = response && response.data && typeof response.data === 'object'
+        ? (response.data.user || response.data)
+        : null
+      if (!profile || !profile.id || typeof response.access_token !== 'string' || !response.access_token.trim()) return false
+
+      const responseCourseId = profileValue(response, 'course_id')
+      const courseId = responseCourseId !== '' ? responseCourseId : profileValue(profile, 'course_id')
+      const responseEnrollment = profileValue(response, 'omri_enrolled')
+      const enrolled = responseEnrollment !== '' ? responseEnrollment : profileValue(profile, 'omri_enrolled')
+      omriEnrolled.value = enrolled === true || Number(enrolled) === 1
+      omriEnrolledCourseId.value = Number(courseId) || null
+
+      if (!currentEdition.enrollment_open &&
+        (!omriEnrolled.value || Number(omriEnrolledCourseId.value) !== Number(currentEdition.course_id))) {
+        user.value.password = ''
+        notifyError('No pudimos continuar con la inscripción', `La admisión para ${currentEdition.edition} está cerrada y esta cuenta no tiene una inscripción activa en esta edición.`)
+        return true
+      }
+      if (!setApiAuthorization(response.access_token)) return false
+
+      user.value.id = profile.id
+      user.value.name = profileValue(profile, 'name', 'nombre')
+      user.value.email = profileValue(profile, 'email') || user.value.email.trim()
+      user.value.lname = profileValue(profile, 'lastname', 'last_name', 'apellidopat')
+      user.value.mlname = profileValue(profile, 'mother_lastname', 'mother_last_name', 'apellidomat')
+      user.value.telNum = profileValue(profile, 'telefono', 'telNum', 'phone')
+      user.value.birthdate = profileValue(profile, 'fecha_nacimiento', 'birth', 'birthdate') || null
+      user.value.firebase = profileValue(profile, 'firebase')
+      user.value.facebook = Boolean(profileValue(profile, 'facebook'))
+      const grade = profileValue(profile, 'id_grado', 'grado')
+      const gradeValue = typeof grade === 'object' ? (grade.value || grade.id) : Number(grade)
+      user.value.grado = opcionesGrado.find(option => Number(option.value) === Number(gradeValue)) || null
+      user.value.escuela = null
+      optionsEscuela.value = []
+      const school = profileValue(profile, 'escuela')
+      const schoolId = profileValue(profile, 'id_escuela') || (school && typeof school === 'object' && (school.id || school.value))
+      const schoolName = school && typeof school === 'object'
+        ? (school.nombre || school.label || profileValue(profile, 'nombre_escuela'))
+        : profileValue(profile, 'nombre_escuela', 'escuela_nombre')
+      if (schoolId) {
+        user.value.escuela = { label: schoolName || 'Escuela', value: schoolId }
+        optionsEscuela.value = [user.value.escuela]
+      }
+      user.value.password = ''
+      cargoId.value = null
+      link.value = ''
+      inscripcionPagada.value = false
+      step.value = 2
+      void trackMetaViewContent({ user: user.value })
       return true
     }
     const loadEdition = () => new Promise(resolve => {
@@ -615,7 +710,6 @@ export default defineComponent({
       formData.append('fecha_nacimiento', user.value.birthdate)
       formData.append('telefono', user.value.telNum)
       formData.append('email', user.value.email)
-      formData.append('password', user.value.password)
       formData.append('id_status', 1)
       formData.append('id_nivel', 1)
       if (user.value.grado !== null) {
@@ -640,11 +734,6 @@ export default defineComponent({
           if (Number(response && response.status) !== 1) {
             Loading.hide()
             notifyError('No pudimos guardar tus datos', responseMessage(response, 'Intenta más tarde.'))
-            return
-          }
-          if (!setApiAuthorization(response.access_token)) {
-            Loading.hide()
-            notifyError('No pudimos autenticar tu cuenta', 'No recibimos el token necesario para confirmar la inscripción y recuperar el enlace de pago. Intenta de nuevo o contacta a info@omri.org.mx.')
             return
           }
           API.Request.Post(
@@ -741,82 +830,78 @@ export default defineComponent({
     const registroEmail = async () => {
       const currentEdition = await loadEdition()
       if (!currentEdition) return
-      Loading.show({ message: 'Guardando...', spinner: QSpinnerBall })
+      const credentials = new FormData()
+      credentials.append('email', user.value.email.trim())
+      credentials.append('password', user.value.password)
       API.Request.Post(
-        'Guardando...',
-        API.Model('Auth').getUser,
-        { email: user.value.email },
+        'Validando cuenta...',
+        API.Model('Auth').login,
+        credentials,
         response => {
-          user.value.password = user.value.email
           if (Number(response && response.status) === 1) {
-            omriEnrolled.value = response.omri_enrolled === true || Number(response.omri_enrolled) === 1
-            omriEnrolledCourseId.value = Number(response.course_id) || null
-            if (!currentEdition.enrollment_open &&
-              (!omriEnrolled.value || Number(omriEnrolledCourseId.value) !== Number(currentEdition.course_id))) {
-              Loading.hide()
-              notifyError('La admisión está cerrada', `Solo pueden continuar quienes ya estaban inscritos en ${currentEdition.edition} antes del ${formatDateTime(currentEdition.enrollment_closes_at)}.`)
-              return
+            if (!setAuthenticatedProfile(response, currentEdition)) {
+              notifyError('No pudimos iniciar sesión', 'El servidor no devolvió la cuenta o el token de acceso necesarios. Intenta más tarde.')
             }
-            user.value.id = response.data
-            user.value.name = response.nombre || ''
-            user.value.lname = response.apellidopat || ''
-            user.value.mlname = response.apellidomat || ''
-            user.value.telNum = response.telefono || ''
-            user.value.birthdate = response.birth || null
-            cargoId.value = null
-            link.value = ''
-            inscripcionPagada.value = false
-            user.value.grado = opcionesGrado[Number(response.grado) - 1] || null
-            user.value.escuela = null
-            if (response.escuela && response.escuela.id) {
-              user.value.escuela = { label: response.escuela.nombre, value: response.escuela.id }
-              optionsEscuela.value = [user.value.escuela]
-            }
-            step.value = 2
-            void trackMetaViewContent({
-              user: user.value
-            })
-            Loading.hide()
+            return
+          }
+          if (!isCredentialFailure(response)) {
+            notifyError('No pudimos validar tu cuenta', responseMessage(response, 'Intenta más tarde.'))
             return
           }
           if (!currentEdition.enrollment_open) {
-            Loading.hide()
-            notifyError('La admisión está cerrada', `Las inscripciones para ${currentEdition.edition} cerraron el ${formatDateTime(currentEdition.enrollment_closes_at)}.`)
+            notifyError('No pudimos validar tu cuenta', credentialsHelpMessage)
             return
           }
-          const formData = new FormData()
-          formData.append('name', user.value.name)
-          formData.append('email', user.value.email)
-          formData.append('password', user.value.password)
-          formData.append('id_status', 1)
-          formData.append('id_nivel', 1)
-          if (route.params.origen && route.params.origen.length) {
-            formData.append('matricula', route.params.origen)
-          }
-          API.Request.Post(
-            'Creando olímpico...',
-            API.Model('Auth').addUser,
-            formData,
-            createResponse => {
-              Loading.hide()
-              if (Number(createResponse && createResponse.status) !== 1 || !createResponse.data || !createResponse.data.id) {
-                notifyError('No pudimos crear tu cuenta', responseMessage(createResponse, 'Intenta más tarde.'))
-                return
-              }
-              user.value.id = createResponse.data.id
-              omriEnrolled.value = false
-              omriEnrolledCourseId.value = null
-              step.value = 2
-            },
-            error => {
-              Loading.hide()
-              notifyError('No pudimos crear tu cuenta', apiErrorMessage(error, 'Intenta más tarde.'))
-            }
-          )
+          createAccount()
         },
         error => {
-          Loading.hide()
-          notifyError('No pudimos buscar tu correo', apiErrorMessage(error, 'Intenta más tarde.'))
+          if (!isCredentialFailure(error)) {
+            notifyError('No pudimos validar tu cuenta', apiErrorMessage(error, 'Intenta más tarde.'))
+            return
+          }
+          if (!currentEdition.enrollment_open) {
+            notifyError('No pudimos validar tu cuenta', credentialsHelpMessage)
+            return
+          }
+          createAccount()
+        }
+      )
+    }
+    const createAccount = async () => {
+      const currentEdition = await loadEdition()
+      if (!currentEdition) return
+      if (!currentEdition.enrollment_open) {
+        notifyError('La admisión está cerrada', `Las inscripciones para ${currentEdition.edition} cerraron el ${formatDateTime(currentEdition.enrollment_closes_at)}.`)
+        return
+      }
+      const formData = new FormData()
+      formData.append('name', '')
+      formData.append('email', user.value.email.trim())
+      formData.append('password', user.value.password)
+      formData.append('id_status', 1)
+      formData.append('id_nivel', 1)
+      if (route.params.origen && route.params.origen.length) {
+        formData.append('matricula', route.params.origen)
+      }
+      API.Request.Post(
+        'Creando cuenta...',
+        API.Model('Auth').addUser,
+        formData,
+        response => {
+          if (Number(response && response.status) !== 1) {
+            notifyError('No pudimos validar tu cuenta', credentialsHelpMessage)
+            return
+          }
+          if (!setAuthenticatedProfile(response, currentEdition)) {
+            notifyError('No pudimos crear tu cuenta', 'El servidor no devolvió la cuenta o el token de acceso necesarios. Intenta más tarde.')
+          }
+        },
+        error => {
+          if (isCredentialFailure(error) || isDuplicateAccountFailure(error)) {
+            notifyError('No pudimos validar tu cuenta', credentialsHelpMessage)
+            return
+          }
+          notifyError('No pudimos crear tu cuenta', apiErrorMessage(error, 'Intenta más tarde.'))
         }
       )
     }

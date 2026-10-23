@@ -23,10 +23,10 @@ export default async function (loadingMessage, url, formData, response, error) {
         response(r.data)
       }
     })
-    .catch(e => {
+    .catch(requestError => {
       Loading.hide()
       if (typeof error === 'function') {
-        error(e)
+        error(requestError)
       }
     })
 }
