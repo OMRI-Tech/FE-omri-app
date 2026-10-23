@@ -898,8 +898,6 @@ export default defineComponent({
       } else if (nuevaEscuelaModel.value.trim()) {
         formData.append('escuela', nuevaEscuelaModel.value.trim())
       }
-      formData.append('paquete_id', currentEdition.course_id)
-      formData.append('activar', 1)
       formData.append('firebase', user.value.firebase)
       if (route.params.origen && route.params.origen.length) {
         formData.append('matricula', route.params.origen)
