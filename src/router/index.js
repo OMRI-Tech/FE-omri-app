@@ -5,12 +5,9 @@ import routes from './routes'
 import { auth } from "boot/firebase";
 import Store from 'src/store'
 import * as API from 'src/store/Api'
+import { isValidRfc3339Timestamp } from 'src/utils/rfc3339'
 
 export let router = null
-
-const hasExplicitIsoOffset = value => typeof value === 'string' &&
-  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/i.test(value) &&
-  Number.isFinite(Date.parse(value))
 
 const editionProfileDetails = profile => {
   const possiblePackage = profile && profile.posible_paquete && typeof profile.posible_paquete === 'object'
@@ -46,7 +43,7 @@ const verifyTrainingAccess = profile => new Promise(resolve => {
       const validMetadata = currentEdition && Number(currentEdition.course_id) > 0 &&
         typeof currentEdition.edition === 'string' && currentEdition.edition.trim() &&
         typeof currentEdition.timezone === 'string' && currentEdition.timezone.trim() &&
-        hasExplicitIsoOffset(currentEdition.training_starts_at)
+        isValidRfc3339Timestamp(currentEdition.training_starts_at)
       if (!validMetadata) {
         resolve({ allowed: false, reason: 'unavailable' })
         return

@@ -332,6 +332,7 @@ import { useRoute } from 'vue-router'
 import { Loading, QSpinnerBall, Notify, LocalStorage, useQuasar } from 'quasar'
 import axios from 'axios'
 import * as API from 'src/store/Api'
+import { isValidRfc3339Timestamp } from 'src/utils/rfc3339'
 import { trackMetaCompleteRegistration, trackMetaViewContent } from 'boot/meta-tracking'
 import CountdownTimer from "components/CountdownTimer.vue"
 import DrawerMenu from "components/DrawerMenu.vue"
@@ -480,9 +481,6 @@ export default defineComponent({
     const menuLateral = ref(false)
     const store = useStore()
     const route = useRoute()
-    const isValidRfc3339Timestamp = value => typeof value === 'string' &&
-      /^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/i.test(value) &&
-      Number.isFinite(Date.parse(value))
     const hasValidEditionDates = editionData => Boolean(editionData && [
       editionData.enrollment_closes_at,
       editionData.payment_closes_at,
