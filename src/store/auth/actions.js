@@ -33,7 +33,8 @@ export function Login ({}, params) {
       }
     },
     error => {
-      const noServerError = error.status === 422
+      const status = Number(error && (error.response && error.response.status ? error.response.status : error.status))
+      const noServerError = status === 422
       console.error(error)
       API.Utils.Notifica('Ocurrió un error 38', !noServerError ? 'Intenta más tarde' : 'No pudimos encontrar tu usuario', false, 'top')
     }

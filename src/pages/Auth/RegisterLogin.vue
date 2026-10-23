@@ -480,6 +480,14 @@ export default defineComponent({
     const menuLateral = ref(false)
     const store = useStore()
     const route = useRoute()
+    const isValidRfc3339Timestamp = value => typeof value === 'string' &&
+      /^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/i.test(value) &&
+      Number.isFinite(Date.parse(value))
+    const hasValidEditionDates = editionData => Boolean(editionData && [
+      editionData.enrollment_closes_at,
+      editionData.payment_closes_at,
+      editionData.training_starts_at
+    ].every(isValidRfc3339Timestamp))
     const verification = computed(() => {
       const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
       return !emailRegex.test(user.value.email.trim()) || !user.value.password.trim();
@@ -514,17 +522,17 @@ export default defineComponent({
       })
     }
     const paymentWindowOpen = computed(() => {
-      const closesAt = edition.value && Date.parse(edition.value.payment_closes_at)
-      return Number.isFinite(closesAt) && now.value < closesAt + 1000
+      if (!hasValidEditionDates(edition.value)) return false
+      const closesAt = Date.parse(edition.value.payment_closes_at)
+      return now.value < closesAt + 1000
     })
     const trainingStarted = computed(() => {
-      const startsAt = edition.value && Date.parse(edition.value.training_starts_at)
-      return Number.isFinite(startsAt) && now.value >= startsAt
+      if (!hasValidEditionDates(edition.value)) return false
+      return now.value >= Date.parse(edition.value.training_starts_at)
     })
     const formatDateTime = value => {
-      if (!value) return ''
+      if (!isValidRfc3339Timestamp(value)) return ''
       const date = new Date(value)
-      if (Number.isNaN(date.getTime())) return value
       return new Intl.DateTimeFormat('es-MX', {
         dateStyle: 'full',
         timeStyle: 'short',
@@ -696,8 +704,8 @@ export default defineComponent({
         response => {
           const valid = response && Number(response.course_id) > 0 && Number(response.fee_mxn) > 0 &&
             typeof response.edition === 'string' && response.edition.trim() &&
-            typeof response.course_name === 'string' && response.course_name.trim() && response.payment_closes_at && response.training_starts_at &&
-            response.enrollment_closes_at && response.timezone && typeof response.enrollment_open === 'boolean'
+            typeof response.course_name === 'string' && response.course_name.trim() &&
+            hasValidEditionDates(response) && response.timezone && typeof response.enrollment_open === 'boolean'
           if (!valid) {
             edition.value = null
             editionError.value = 'No pudimos cargar una convocatoria válida. Intenta más tarde.'
@@ -719,6 +727,11 @@ export default defineComponent({
       )
     })
     const requestPaymentLink = () => {
+      if (!hasValidEditionDates(edition.value)) {
+        paymentLinkError.value = 'No pudimos verificar los plazos de esta convocatoria. No podemos abrir el checkout.'
+        link.value = ''
+        return
+      }
       if (!cargoId.value) {
         paymentLinkError.value = 'No encontramos un cargo pendiente de esta edición.'
         return
@@ -764,6 +777,10 @@ export default defineComponent({
       const enrollment = enrollmentResponse && enrollmentResponse.data
       if (Number(enrollmentResponse && enrollmentResponse.status) !== 1 || !enrollment) {
         notifyError('No pudimos confirmar tu inscripción', responseMessage(enrollmentResponse, 'Intenta más tarde.'))
+        return false
+      }
+      if (!hasValidEditionDates(currentEdition) || !isValidRfc3339Timestamp(enrollment.payment_closes_at)) {
+        notifyError('No pudimos confirmar tu inscripción', 'No pudimos verificar los plazos de la convocatoria. Intenta más tarde.')
         return false
       }
       const paymentClosesAt = Date.parse(enrollment.payment_closes_at)

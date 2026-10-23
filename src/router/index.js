@@ -34,7 +34,7 @@ const editionProfileDetails = profile => {
 const verifyTrainingAccess = profile => new Promise(resolve => {
   const profileDetails = editionProfileDetails(profile)
   if (!profileDetails.isEditionProfile) {
-    resolve({ allowed: true })
+    resolve({ allowed: true, isOmriEdition: false })
     return
   }
 
@@ -62,7 +62,8 @@ const verifyTrainingAccess = profile => new Promise(resolve => {
 
       resolve({
         allowed: Date.now() >= Date.parse(currentEdition.training_starts_at),
-        reason: 'not_started'
+        reason: 'not_started',
+        isOmriEdition: currentEdition.edition.trim().toLocaleUpperCase() === 'XX OMRI'
       })
     },
     () => resolve({ allowed: false, reason: 'unavailable' })
@@ -98,6 +99,15 @@ export default route(function (/* { store, ssrContext } */) {
             position: 'top'
           })
           return next({ name: 'Register' })
+        }
+        if (access.isOmriEdition && to.matched.some(record => record.meta.legacyContent)) {
+          Notify.create({
+            message: 'El contenido de la XX OMRI todavía no está disponible.',
+            caption: 'Por ahora puedes consultar el estado de tu inscripción desde el menú.',
+            color: 'info',
+            position: 'top'
+          })
+          return next({ name: 'Home' })
         }
       }
       return next()

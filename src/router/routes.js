@@ -31,14 +31,14 @@ const routes = [
         path: 'minijuegos',
         component: () => import('pages/MiniJuegos.vue'),
         name: 'MiniGames',
-        meta: { auth: true }
+        meta: { auth: true, training: true }
       }
     ]
   },
   {
     path: '/lessons',
     component: () => import('layouts/LessonLayout.vue'),
-    meta: { training: true },
+    meta: { training: true, legacyContent: true },
     children: [
       {
         path: '',
@@ -57,7 +57,7 @@ const routes = [
   {
     path: '/quiz',
     component: () => import('layouts/QuizLayout.vue'),
-    meta: { training: true },
+    meta: { training: true, legacyContent: true },
     children: [
       { path: '', component: () => import('pages/Quiz.vue'), name: 'Quiz', meta: { auth: true } }
     ]
