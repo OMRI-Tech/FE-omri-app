@@ -18,7 +18,8 @@ export default route(function (/* { store, ssrContext } */) {
       Store().getters['auth/isLogged'] ? next() : next({ name: 'Login' })
     } else {
       if (to.matched.some(record => record.meta.type === 'auth')) {
-        !Store().getters['auth/isLogged'] ? next() : next({ name: 'Home' })
+        const allowAuthenticated = to.matched.some(record => record.meta.allowAuthenticated)
+        !Store().getters['auth/isLogged'] || allowAuthenticated ? next() : next({ name: 'Home' })
       } else {
         if (to.fullPath === '/') next({ name: 'Home' })
         else next()

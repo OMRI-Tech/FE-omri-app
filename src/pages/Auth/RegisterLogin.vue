@@ -89,6 +89,18 @@
                   <p v-else class="text-caption q-mb-none">
                     La admisión cerró. Inicia sesión con la cuenta que ya inscribiste en esta edición.
                   </p>
+                  <q-banner v-if="savedSession" rounded class="bg-blue-1 text-grey-9 q-my-sm">
+                    <div>Hay una sesión activa para {{ savedSession.email || 'esta cuenta' }}.</div>
+                    <q-btn
+                      class="q-mt-sm"
+                      color="primary"
+                      type="button"
+                      no-caps
+                      label="Continuar con esta cuenta"
+                      :loading="restoringSession"
+                      @click="continueSavedSession"
+                    />
+                  </q-banner>
                   <q-input
                     dense v-model="user.email"
                     class="q-my-sm text-button"
@@ -287,6 +299,15 @@
                   <h4>Pago confirmado</h4>
                 </q-banner>
                 <q-btn
+                  v-if="trainingStarted"
+                  rounded
+                  class="q-ma-sm full-width button-submit text-button"
+                  color="primary"
+                  :to="{ name: 'Home' }"
+                  label="Entrar a la plataforma"
+                  no-caps
+                />
+                <q-btn
                   rounded
                   class="q-ma-sm full-width button-submit text-button bg-red"
                   type="button"
@@ -319,7 +340,7 @@
 import { ref, defineComponent, reactive, computed, onBeforeMount, onBeforeUnmount, onMounted, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useRoute } from 'vue-router'
-import { Loading, QSpinnerBall, Notify, useQuasar } from 'quasar'
+import { Loading, QSpinnerBall, Notify, LocalStorage, useQuasar } from 'quasar'
 import axios from 'axios'
 import * as API from 'src/store/Api'
 import { trackMetaCompleteRegistration, trackMetaViewContent } from 'boot/meta-tracking'
@@ -388,6 +409,8 @@ export default defineComponent({
     const editionError = ref('')
     const omriEnrolled = ref(false)
     const omriEnrolledCourseId = ref(null)
+    const savedSession = ref(null)
+    const restoringSession = ref(false)
     const paymentLinkError = ref('')
     const linkLoading = ref(false)
     const cargoId = ref(null)
@@ -505,6 +528,10 @@ export default defineComponent({
       const closesAt = edition.value && Date.parse(edition.value.payment_closes_at)
       return Number.isFinite(closesAt) && now.value < closesAt + 1000
     })
+    const trainingStarted = computed(() => {
+      const startsAt = edition.value && Date.parse(edition.value.training_starts_at)
+      return Number.isFinite(startsAt) && now.value >= startsAt
+    })
     const formatDateTime = value => {
       if (!value) return ''
       const date = new Date(value)
@@ -541,6 +568,21 @@ export default defineComponent({
       axios.defaults.headers.common.Authorization = `Bearer ${accessToken.trim()}`
       return true
     }
+    const persistAuthenticatedSession = (profile, accessToken, replaceExisting = false) => {
+      if (!profile || typeof profile !== 'object' || !profile.id) return false
+      const existingProfile = LocalStorage.getItem('user_logged')
+      const currentProfile = existingProfile && typeof existingProfile === 'object' ? existingProfile : {}
+      const sessionProfile = replaceExisting ? { ...profile } : { ...currentProfile, ...profile }
+      const token = typeof accessToken === 'string' && accessToken.trim()
+        ? accessToken.trim()
+        : LocalStorage.getItem('api_token')
+      if (typeof token !== 'string' || !token.trim()) return false
+      LocalStorage.set('user_logged', sessionProfile)
+      LocalStorage.set('api_token', token)
+      LocalStorage.set('avatar', sessionProfile.avatar || (replaceExisting ? '' : LocalStorage.getItem('avatar')) || '')
+      savedSession.value = { id: sessionProfile.id, email: sessionProfile.email || '' }
+      return true
+    }
     const credentialsHelpMessage = 'No pudimos validar el correo y la contraseña. Revisa tus datos o usa el acceso por WhatsApp desde Iniciar sesión.'
     const isCredentialFailure = result => {
       const status = Number(result && (result.response && result.response.status ? result.response.status : result.status))
@@ -564,30 +606,10 @@ export default defineComponent({
       }
       return ''
     }
-    const setAuthenticatedProfile = (response, currentEdition) => {
-      const profile = response && response.data && typeof response.data === 'object'
-        ? (response.data.user || response.data)
-        : null
-      if (!profile || !profile.id || typeof response.access_token !== 'string' || !response.access_token.trim()) return false
-
-      const responseCourseId = profileValue(response, 'course_id')
-      const courseId = responseCourseId !== '' ? responseCourseId : profileValue(profile, 'course_id')
-      const responseEnrollment = profileValue(response, 'omri_enrolled')
-      const enrolled = responseEnrollment !== '' ? responseEnrollment : profileValue(profile, 'omri_enrolled')
-      omriEnrolled.value = enrolled === true || Number(enrolled) === 1
-      omriEnrolledCourseId.value = Number(courseId) || null
-
-      if (!currentEdition.enrollment_open &&
-        (!omriEnrolled.value || Number(omriEnrolledCourseId.value) !== Number(currentEdition.course_id))) {
-        user.value.password = ''
-        notifyError('No pudimos continuar con la inscripción', `La admisión para ${currentEdition.edition} está cerrada y esta cuenta no tiene una inscripción activa en esta edición.`)
-        return true
-      }
-      if (!setApiAuthorization(response.access_token)) return false
-
-      user.value.id = profile.id
+    const populateProfileForm = (profile, fallbackEmail = '') => {
+      user.value.id = profile.id || null
       user.value.name = profileValue(profile, 'name', 'nombre')
-      user.value.email = profileValue(profile, 'email') || user.value.email.trim()
+      user.value.email = profileValue(profile, 'email') || fallbackEmail
       user.value.lname = profileValue(profile, 'lastname', 'last_name', 'apellidopat')
       user.value.mlname = profileValue(profile, 'mother_lastname', 'mother_last_name', 'apellidomat')
       user.value.telNum = profileValue(profile, 'telefono', 'telNum', 'phone')
@@ -609,6 +631,34 @@ export default defineComponent({
         optionsEscuela.value = [user.value.escuela]
       }
       user.value.password = ''
+    }
+    const setAuthenticatedProfile = (response, currentEdition) => {
+      const profile = response && response.data && typeof response.data === 'object'
+        ? (response.data.user || response.data)
+        : null
+      if (!profile || !profile.id || typeof response.access_token !== 'string' || !response.access_token.trim()) return false
+
+      const responseCourseId = profileValue(response, 'course_id')
+      const courseId = responseCourseId !== '' ? responseCourseId : profileValue(profile, 'course_id')
+      const responseEnrollment = profileValue(response, 'omri_enrolled')
+      const enrolled = responseEnrollment !== '' ? responseEnrollment : profileValue(profile, 'omri_enrolled')
+      omriEnrolled.value = enrolled === true || Number(enrolled) === 1
+      omriEnrolledCourseId.value = Number(courseId) || null
+
+      if (!currentEdition.enrollment_open &&
+        (!omriEnrolled.value || Number(omriEnrolledCourseId.value) !== Number(currentEdition.course_id))) {
+        user.value.password = ''
+        notifyError('No pudimos continuar con la inscripción', `La admisión para ${currentEdition.edition} está cerrada y esta cuenta no tiene una inscripción activa en esta edición.`)
+        return true
+      }
+      if (!setApiAuthorization(response.access_token)) return false
+      const authenticatedProfile = {
+        ...profile,
+        omri_enrolled: omriEnrolled.value,
+        course_id: omriEnrolledCourseId.value
+      }
+      if (!persistAuthenticatedSession(authenticatedProfile, response.access_token, true)) return false
+      populateProfileForm(profile, user.value.email.trim())
       cargoId.value = null
       link.value = ''
       inscripcionPagada.value = false
@@ -690,6 +740,103 @@ export default defineComponent({
         }
       )
     }
+    const applyEnrollmentResponse = (enrollmentResponse, currentEdition) => {
+      const enrollment = enrollmentResponse && enrollmentResponse.data
+      if (Number(enrollmentResponse && enrollmentResponse.status) !== 1 || !enrollment) {
+        notifyError('No pudimos confirmar tu inscripción', responseMessage(enrollmentResponse, 'Intenta más tarde.'))
+        return false
+      }
+      const paymentClosesAt = Date.parse(enrollment.payment_closes_at)
+      if (Number(enrollment.course_id) !== Number(currentEdition.course_id) ||
+        String(enrollment.course_name || '').trim() !== String(currentEdition.course_name).trim() ||
+        Number(enrollment.fee_mxn) !== Number(currentEdition.fee_mxn) ||
+        paymentClosesAt !== Date.parse(currentEdition.payment_closes_at) || !enrollment.cargo_id) {
+        notifyError('No pudimos confirmar tu inscripción', 'El cargo devuelto no coincide con la convocatoria actual. Contacta a info@omri.org.mx.')
+        return false
+      }
+      cargoId.value = enrollment.cargo_id
+      inscripcionPagada.value = enrollment.pagado === true || Number(enrollment.pagado) === 1
+      paymentLinkError.value = ''
+      link.value = typeof enrollment.payment_url === 'string' ? enrollment.payment_url : ''
+      step.value = 3
+      persistAuthenticatedSession({
+        ...(LocalStorage.getItem('user_logged') || {}),
+        omri_enrolled: true,
+        course_id: Number(currentEdition.course_id)
+      })
+      trackCompleteRegistrationEvent(enrollment.cargo_id)
+      if (inscripcionPagada.value) {
+        link.value = ''
+        Notify.create({
+          message: 'Inscripción confirmada',
+          caption: 'El pago de esta edición ya está confirmado.',
+          avatar: require('assets/img/entrenator.png'),
+          color: 'positive'
+        })
+      } else if (link.value) {
+        Notify.create({
+          message: 'Tu inscripción quedó guardada',
+          caption: 'El pago está pendiente; puedes comenzar el entrenamiento en la fecha indicada.',
+          avatar: require('assets/img/entrenator.png'),
+          color: 'positive'
+        })
+      } else {
+        requestPaymentLink()
+      }
+      return true
+    }
+    const continueSavedSession = async () => {
+      if (restoringSession.value) return
+      restoringSession.value = true
+      const currentEdition = await loadEdition()
+      const profile = LocalStorage.getItem('user_logged')
+      const accessToken = LocalStorage.getItem('api_token')
+      if (!currentEdition || !profile || typeof profile !== 'object' || !profile.id ||
+        typeof accessToken !== 'string' || !accessToken.trim()) {
+        restoringSession.value = false
+        notifyError('No pudimos continuar con la cuenta activa', 'Inicia sesión de nuevo e intenta recuperar tu inscripción.')
+        return
+      }
+      const courseId = Number(profileValue(profile, 'course_id')) || null
+      const enrolledValue = profileValue(profile, 'omri_enrolled')
+      const isEnrolled = enrolledValue === true || Number(enrolledValue) === 1
+      if (!currentEdition.enrollment_open && (!isEnrolled || courseId !== Number(currentEdition.course_id))) {
+        restoringSession.value = false
+        notifyError('No pudimos continuar con la inscripción', `La admisión para ${currentEdition.edition} está cerrada y esta cuenta no tiene una inscripción activa en esta edición.`)
+        return
+      }
+      if (!setApiAuthorization(accessToken)) {
+        restoringSession.value = false
+        notifyError('No pudimos continuar con la cuenta activa', 'Inicia sesión de nuevo e intenta recuperar tu inscripción.')
+        return
+      }
+      populateProfileForm(profile)
+      omriEnrolled.value = isEnrolled
+      omriEnrolledCourseId.value = courseId
+      if (!persistAuthenticatedSession(profile, accessToken)) {
+        restoringSession.value = false
+        notifyError('No pudimos continuar con la cuenta activa', 'Inicia sesión de nuevo e intenta recuperar tu inscripción.')
+        return
+      }
+      if (!isEnrolled || courseId !== Number(currentEdition.course_id)) {
+        restoringSession.value = false
+        step.value = 2
+        return
+      }
+      API.Request.Post(
+        'Recuperando tu inscripción...',
+        API.Model('Auth').createOmriEnrollment,
+        { user_id: profile.id, course_id: currentEdition.course_id },
+        enrollmentResponse => {
+          restoringSession.value = false
+          applyEnrollmentResponse(enrollmentResponse, currentEdition)
+        },
+        error => {
+          restoringSession.value = false
+          notifyError('No pudimos recuperar tu inscripción', apiErrorMessage(error, 'Intenta más tarde.'))
+        }
+      )
+    }
     const actualizacionDatos = async () => {
       if (!edition.value || !user.value.id) {
         notifyError('No pudimos continuar con la inscripción', 'Vuelve a verificar tu correo electrónico.')
@@ -736,6 +883,12 @@ export default defineComponent({
             notifyError('No pudimos guardar tus datos', responseMessage(response, 'Intenta más tarde.'))
             return
           }
+          const updatedProfile = response && response.data && typeof response.data === 'object'
+            ? (response.data.user || response.data)
+            : null
+          if (updatedProfile && Number(updatedProfile.id) === Number(user.value.id)) {
+            persistAuthenticatedSession(updatedProfile)
+          }
           API.Request.Post(
             'Registrando inscripción...',
             API.Model('Auth').createOmriEnrollment,
@@ -745,45 +898,7 @@ export default defineComponent({
             },
             enrollmentResponse => {
               Loading.hide()
-              const enrollment = enrollmentResponse && enrollmentResponse.data
-              if (Number(enrollmentResponse && enrollmentResponse.status) !== 1 || !enrollment) {
-                notifyError('No pudimos confirmar tu inscripción', responseMessage(enrollmentResponse, 'Intenta más tarde.'))
-                return
-              }
-              const paymentClosesAt = Date.parse(enrollment.payment_closes_at)
-              if (Number(enrollment.course_id) !== Number(currentEdition.course_id) ||
-                String(enrollment.course_name || '').trim() !== String(currentEdition.course_name).trim() ||
-                Number(enrollment.fee_mxn) !== Number(currentEdition.fee_mxn) ||
-                paymentClosesAt !== Date.parse(currentEdition.payment_closes_at) || !enrollment.cargo_id) {
-                notifyError('No pudimos confirmar tu inscripción', 'El cargo devuelto no coincide con la convocatoria actual. Contacta a info@omri.org.mx.')
-                return
-              }
-              cargoId.value = enrollment.cargo_id
-              inscripcionPagada.value = enrollment.pagado === true || Number(enrollment.pagado) === 1
-              paymentLinkError.value = ''
-              link.value = typeof enrollment.payment_url === 'string' ? enrollment.payment_url : ''
-              step.value = 3
-              trackCompleteRegistrationEvent(enrollment.cargo_id)
-              if (inscripcionPagada.value) {
-                link.value = ''
-                Notify.create({
-                  message: 'Inscripción confirmada',
-                  caption: 'El pago de esta edición ya está confirmado.',
-                  avatar: require('assets/img/entrenator.png'),
-                  color: 'positive'
-                })
-              } else {
-                if (link.value) {
-                  Notify.create({
-                    message: 'Tu inscripción quedó guardada',
-                    caption: 'El pago está pendiente; puedes comenzar el entrenamiento en la fecha indicada.',
-                    avatar: require('assets/img/entrenator.png'),
-                    color: 'positive'
-                  })
-                } else {
-                  requestPaymentLink()
-                }
-              }
+              applyEnrollmentResponse(enrollmentResponse, currentEdition)
             },
             error => {
               Loading.hide()
@@ -920,6 +1035,11 @@ export default defineComponent({
     });
     onMounted(() => {
       menuLateral.value = false
+      const storedProfile = LocalStorage.getItem('user_logged')
+      const storedToken = LocalStorage.getItem('api_token')
+      if (storedProfile && storedProfile.id && typeof storedToken === 'string' && storedToken.trim()) {
+        savedSession.value = { id: storedProfile.id, email: storedProfile.email || '' }
+      }
       loadEdition()
       void trackMetaViewContent({
         user: user.value
@@ -952,6 +1072,7 @@ export default defineComponent({
       formatDateTime,
       formatFee,
       paymentWindowOpen,
+      trainingStarted,
       menuLateral,
       nuevaEscuelaModel,
       loading,
@@ -962,6 +1083,9 @@ export default defineComponent({
       debouncedScroll,
       filterEscuela,
       registroEmail,
+      savedSession,
+      restoringSession,
+      continueSavedSession,
       reiniciar,
       actualizacionDatos,
       recuperaLink,
