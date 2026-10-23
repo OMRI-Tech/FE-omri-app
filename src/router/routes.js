@@ -19,7 +19,7 @@ const routes = [
         path: 'menu',
         component: () => import('pages/Menu.vue'),
         name: 'Home',
-        meta: { auth: true }
+        meta: { auth: true, training: true }
       },
       {
         path: 'profile',
@@ -38,6 +38,7 @@ const routes = [
   {
     path: '/lessons',
     component: () => import('layouts/LessonLayout.vue'),
+    meta: { training: true },
     children: [
       {
         path: '',
@@ -56,6 +57,7 @@ const routes = [
   {
     path: '/quiz',
     component: () => import('layouts/QuizLayout.vue'),
+    meta: { training: true },
     children: [
       { path: '', component: () => import('pages/Quiz.vue'), name: 'Quiz', meta: { auth: true } }
     ]

@@ -4,7 +4,7 @@ import * as API from 'src/store/Api'
 import { auth, db, provider } from "boot/firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithRedirect, signOut } from 'firebase/auth'
-import router from 'src/router';
+import { router } from 'src/router';
 
 export function Login ({}, params) {
   const formData = new FormData()
@@ -65,20 +65,93 @@ function profileWithEditionStatus (user, response) {
   return sessionProfile
 }
 
-function realLogin(commit, userDB, user, token, formData, loginResponse) {
-  if (token !== null) {
-    user = profileWithEditionStatus(user, loginResponse)
-    LocalStorage.set('user_logged', user)
-    LocalStorage.set('api_token', token)
-    LocalStorage.set('avatar', user.avatar)
-    commit('SET_USER', auth.currentUser)
-    API.Request.Post(
-      'Actualizando...',
-      API.Model('Auth').updateUser + user.id,
-      formData,
-      () => ( redirect({ path: '/home' }) )
-    )
+const notifyFirebaseLoginError = error => {
+  const status = Number(error && (error.status || (error.response && error.response.status)))
+  Notify.create({
+    message: 'No se pudo iniciar sesión',
+    caption: status === 422 ? 'Revisa el correo y la contraseña.' : 'Intenta más tarde.',
+    avatar: require('assets/img/entrenator.png'),
+    color: 'negative'
+  })
+}
+
+const notifyFirebaseUpdateError = error => {
+  const status = Number(error && (error.status || (error.response && error.response.status)))
+  Notify.create({
+    message: 'No se pudo actualizar la cuenta',
+    caption: status === 422 ? 'No pudimos guardar los datos de acceso.' : 'Intenta iniciar sesión de nuevo más tarde.',
+    avatar: require('assets/img/entrenator.png'),
+    color: 'negative'
+  })
+}
+
+function realLogin(commit, userDB, user, formData, loginResponse, onError, onSuccess) {
+  const token = loginResponse && loginResponse.access_token
+  if (typeof token !== 'string' || !token.trim() || !user || !user.id) {
+    if (typeof onError === 'function') onError(new Error('El login no devolvió usuario y token.'))
+    return false
   }
+
+  const authorization = `Bearer ${token.trim()}`
+  const previousAuthorization = axios.defaults.headers.common.Authorization
+  axios.defaults.headers.common.Authorization = authorization
+  const fail = error => {
+    if (axios.defaults.headers.common.Authorization === authorization) {
+      if (previousAuthorization === undefined) delete axios.defaults.headers.common.Authorization
+      else axios.defaults.headers.common.Authorization = previousAuthorization
+    }
+    if (typeof onError === 'function') onError(error)
+    else notifyFirebaseUpdateError(error)
+  }
+
+  API.Request.Post(
+    'Actualizando...',
+    API.Model('Auth').updateUser + user.id,
+    formData,
+    response => {
+      if (Number(response && response.status) !== 1) {
+        fail(response || new Error('No pudimos actualizar la cuenta.'))
+        return
+      }
+      const updatedProfile = response.data && typeof response.data === 'object' ? response.data : {}
+      const sessionProfile = profileWithEditionStatus({ ...user, ...updatedProfile }, loginResponse)
+      LocalStorage.set('user_logged', sessionProfile)
+      LocalStorage.set('api_token', token.trim())
+      LocalStorage.set('avatar', sessionProfile.avatar || '')
+      commit('SET_USER', userDB || auth.currentUser)
+      if (typeof onSuccess === 'function') onSuccess(sessionProfile)
+    },
+    fail
+  )
+  return true
+}
+
+function authenticateFirebaseProfile(commit, userDB, details, profileFormData, onSuccess) {
+  const loginFormData = new FormData()
+  loginFormData.append('email', details.email)
+  loginFormData.append('password', details.password)
+  if (userDB && userDB.uid) loginFormData.append('firebase', userDB.uid)
+  API.Request.Post(
+    'Iniciando sesión...',
+    API.Model('Auth').login,
+    loginFormData,
+    response => {
+      if (Number(response && response.status) !== 1 || typeof response.access_token !== 'string') {
+        notifyFirebaseLoginError(response)
+        return
+      }
+      realLogin(
+        commit,
+        userDB,
+        response.data,
+        profileFormData,
+        response,
+        notifyFirebaseUpdateError,
+        onSuccess
+      )
+    },
+    notifyFirebaseLoginError
+  )
 }
 
 export async function loginFirebase ({ commit }, details) {
@@ -101,17 +174,24 @@ export async function loginFirebase ({ commit }, details) {
       API.Model('Auth').login,
       formData,
       response => {
-        let user = {}
-        let token = null
-        if (response.status === 1) {
-          token = response.access_token
-          user = response.data
+        if (Number(response && response.status) === 1) {
+          const user = response.data
           /// se actualiza contraseña y firebase
-          realLogin(commit, userDB, user, token, formData, response)
+          realLogin(
+            commit,
+            userDB,
+            user,
+            formData,
+            response,
+            notifyFirebaseUpdateError,
+            sessionProfile => {
+              API.Utils.Notifica('¡Sesión Iniciada!', `Bienvenido ${sessionProfile.name}!`, true, 'top')
+              router.push({ name: 'Home' })
+            }
+          )
+        } else {
+          API.Utils.Notifica('¡Contraseña Incorrecta!', 'La contraseña no coincide, vuelve a intentarlo', false, 'top')
         }
-        API.Utils.Notifica(token === null ? '¡Contraseña Incorrecta!' : '¡Sesión Iniciada!',
-          token === null ? 'La contraseña no coincide, vuelve a intentarlo' : `Bienvenido ${user.name}!`,
-          token === null, 'top')
       },
       error => {
         const noServerError = error.status === 422
@@ -128,12 +208,8 @@ export async function loginFirebase ({ commit }, details) {
           API.Model('Auth').login,
           formData,
           response => {
-            let user = {}
-            let token = null
-            if (response.status === 1) {
+            if (Number(response && response.status) === 1) {
               /// si existe en sistema entonces
-              token = response.access_token
-              user = response.data
               /// se crea en firebase
               createUserWithEmailAndPassword(
                 auth,
@@ -141,19 +217,38 @@ export async function loginFirebase ({ commit }, details) {
                 details.password
               ).then((userCredential) => {
                 const userDB = userCredential.user;
-                realLogin(commit, userDB, user, token, formData, response)
+                formData.append('firebase', userDB.uid)
+                realLogin(
+                  commit,
+                  userDB,
+                  response.data,
+                  formData,
+                  response,
+                  notifyFirebaseUpdateError,
+                  sessionProfile => {
+                    Notify.create({
+                      message: '¡Sesión Iniciada!',
+                      caption: `Bienvenido ${sessionProfile.name}!`,
+                      avatar: require('assets/img/entrenator.png'),
+                      color: 'positive'
+                    })
+                    router.push({ name: 'Home' })
+                  }
+                )
               })
               .catch((error) => {
                 console.error('error codigo', error.code)
+                Loading.hide()
                 alert(error.message)
               });
+            } else {
+              Notify.create({
+                message: '¡Contraseña Incorrecta!',
+                caption: 'La contraseña no coincide, vuelve a intentarlo',
+                avatar: require('assets/img/entrenator.png'),
+                color: 'info'
+              })
             }
-            Notify.create({
-              message: token === null ? '¡Contraseña Incorrecta!' : '¡Sesión Iniciada!',
-              caption: token === null ? 'La contraseña no coincide, vuelve a intentarlo' : `Bienvenido ${user.name}!`,
-              avatar: require('assets/img/entrenator.png'),
-              color: token === null ? 'info' : 'positive'
-            })
           },
           error => {
             const noServerError = error.status === 422
@@ -193,113 +288,92 @@ export async function socialRedirect({ commit }, details) {
 }
 export async function registerFirebase ({ commit }, details) {
   const { email, password } = details
+  const completeLogin = sessionProfile => {
+    Notify.create({
+      message: '¡Sesión Iniciada!',
+      caption: `Bienvenido ${sessionProfile.name}!`,
+      avatar: require('assets/img/entrenator.png'),
+      color: 'positive'
+    })
+    router.push({ name: 'Home' })
+  }
   try {
-    let userCredential = null
-    await createUserWithEmailAndPassword(
+    const userCredential = await createUserWithEmailAndPassword(
       auth,
       email,
       password
-    ).then((userCredential) => {
-      const userDB = userCredential.user;
-      const formData = new FormData()
-      formData.append('email', email)
-      API.Request.Post(
-        'Comprobando correo...',
-        API.Model('Auth').getUser,
-        formData,
-        response => {
-          const formData = new FormData()
-          formData.append('name', details.name)
-          formData.append('lastname', details.lname)
-          formData.append('mother_lastname', details.mlname)
-          formData.append('fecha_nacimiento', details.birthdate)
-          formData.append('telefono', details.telNum)
-          formData.append('email', details.email)
-          formData.append('password', details.password)
-          formData.append('id_status', 1)
-          formData.append('id_nivel', 1)
-          formData.append('firebase', userDB.uid)
-          if (response.status === 1) {
-            /// el usuario existe y solo se actualiza
-            let user_id = response.data
-            API.Request.Post(
-              'Actualizando olímpico...',
-              API.Model('Auth').updateUser + user_id,
-              formData,
-              response => {
-                if (response.status === 1) {
-                  let token = response.access_token
-                  let user = response.data
-                  realLogin(commit, userDB, user, token, formData, response)
-                } else {
-                  Notify.create({
-                    message: 'Ocurrió un error al actualizar olímpico',
-                    caption: !noServerError ? 'Intenta más tarde' : 'No pudimos actualizar tu usuario',
-                    avatar: require('assets/img/entrenator.png'),
-                    color: !noServerError ? 'negative' : 'info',
-                    // classes: 'horizontal-center'
-                  })
-                }
-              },
-              error => {
-                const noServerError = error.status === 422
-                Notify.create({
-                  message: 'Ocurrió un error',
-                  caption: !noServerError ? 'Intenta más tarde' : 'No pudimos actualizar tu usuario',
-                  avatar: require('assets/img/entrenator.png'),
-                  color: !noServerError ? 'negative' : 'info',
-                  // classes: 'horizontal-center'
-                })
-              }
-            )
-          } else {
-            /// el usuario no existe y se crea
-            API.Request.Post(
-              'Creando olímpico...',
-              API.Model('Auth').addUser,
-              formData,
-              response => {
-                if (response.status === 1) {
-                  /// el usuario fue agregado existosamente
-                  let token = response.access_token
-                  let user = response.data
-                  realLogin(commit, userDB, user, token, formData, response)
-                } else {
-                  console.error(response)
-                  /// el usuario no se agregó porque ya existe
-                  Notify.create({
-                    message: 'Ocurrió un error...',
-                    caption: 'Intenta más tarde',
-                    avatar: require('assets/img/entrenator.png'),
-                    color: 'negative'
-                  })
-                }
-              },
-              error => {
-                const noServerError = error.status === 422
-                Notify.create({
-                  message: 'Ocurrió un error',
-                  caption: !noServerError ? 'Intenta más tarde' : 'No pudimos crear tu usuario',
-                  avatar: require('assets/img/entrenator.png'),
-                  color: !noServerError ? 'negative' : 'info',
-                  // classes: 'horizontal-center'
-                })
-              }
-            )
-          }
-        },
-        error => {
-          const noServerError = error.status === 422
-          Notify.create({
-            message: 'Ocurrió un error',
-            caption: !noServerError ? 'Intenta más tarde' : 'No pudimos encontrar tu usuario',
-            avatar: require('assets/img/entrenator.png'),
-            color: !noServerError ? 'negative' : 'info',
-            // classes: 'horizontal-center'
-          })
+    )
+    const userDB = userCredential.user
+    const profileFormData = new FormData()
+    profileFormData.append('name', details.name)
+    profileFormData.append('lastname', details.lname)
+    profileFormData.append('mother_lastname', details.mlname)
+    profileFormData.append('fecha_nacimiento', details.birthdate)
+    profileFormData.append('telefono', details.telNum)
+    profileFormData.append('email', email)
+    profileFormData.append('id_status', 1)
+    profileFormData.append('id_nivel', 1)
+    profileFormData.append('firebase', userDB.uid)
+    const createFormData = new FormData()
+    createFormData.append('name', details.name)
+    createFormData.append('lastname', details.lname)
+    createFormData.append('mother_lastname', details.mlname)
+    createFormData.append('fecha_nacimiento', details.birthdate)
+    createFormData.append('telefono', details.telNum)
+    createFormData.append('email', email)
+    createFormData.append('password', password)
+    createFormData.append('id_status', 1)
+    createFormData.append('id_nivel', 1)
+    createFormData.append('firebase', userDB.uid)
+    const emailFormData = new FormData()
+    emailFormData.append('email', email)
+    API.Request.Post(
+      'Comprobando correo...',
+      API.Model('Auth').getUser,
+      emailFormData,
+      response => {
+        if (Number(response && response.status) === 1) {
+          // El login autenticado debe ocurrir antes de modificar el perfil.
+          authenticateFirebaseProfile(commit, userDB, details, profileFormData, completeLogin)
+          return
         }
-      )
-    })
+        API.Request.Post(
+          'Creando olímpico...',
+          API.Model('Auth').addUser,
+          createFormData,
+          createResponse => {
+            if (Number(createResponse && createResponse.status) === 1) {
+              authenticateFirebaseProfile(commit, userDB, details, profileFormData, completeLogin)
+            } else {
+              Notify.create({
+                message: 'Ocurrió un error al crear la cuenta',
+                caption: 'Intenta más tarde.',
+                avatar: require('assets/img/entrenator.png'),
+                color: 'negative'
+              })
+            }
+          },
+          error => {
+            const status = Number(error && (error.status || (error.response && error.response.status)))
+            Notify.create({
+              message: 'Ocurrió un error al crear la cuenta',
+              caption: status === 422 ? 'No pudimos crear el usuario con esos datos.' : 'Intenta más tarde.',
+              avatar: require('assets/img/entrenator.png'),
+              color: 'negative'
+            })
+          }
+        )
+      },
+      error => {
+        const status = Number(error && (error.status || (error.response && error.response.status)))
+        Notify.create({
+          message: 'Ocurrió un error al comprobar el correo',
+          caption: status === 422 ? 'Revisa el correo e inténtalo de nuevo.' : 'Intenta más tarde.',
+          avatar: require('assets/img/entrenator.png'),
+          color: 'negative'
+        })
+      }
+    )
   } catch (error) {
     switch(error.code) {
       case 'auth/user-not-found':
