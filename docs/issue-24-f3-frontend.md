@@ -8,6 +8,8 @@ The edition is reloaded before email lookup and before saving step 2, so an open
 
 The form includes the school/grado state carried from the deployed registration UI. The source checkout's unrelated Meta tracking edits were not copied. The minimal route change is included because the deployed registration view is `RegisterLogin.vue`, while the branch baseline routes `/register` to `Register.vue`.
 
+The drawer dialogs reachable from `/register` also use current wording: the course dialog loads the training start from the edition endpoint and defers modality, session calendar, and academic contents to the current call; the cost dialog refers to XX without an unconfirmed national contest year; the requirements dialog preserves the fourth-semester cap and points to the current call for its reference period. Payment remains available through the final second encoded by the API close timestamp; the UI removes payment actions after that window.
+
 ## Integration base
 
 - Branch: `codex/xx-omri-frontend`
@@ -15,7 +17,7 @@ The form includes the school/grado state carried from the deployed registration 
 - Implementation base: `b8045dc4939ff45a06a96796a015fd5981f1e389`
 - Known GitHub `origin/main` base: `bca34a4`
 
-The implementation base is six commits ahead of `origin/main` (`git rev-list --left-right --count bca34a4...b8045dc` returned `0 6`). Those commits are part of the deployed local baseline confirmed for this work. This branch adds the F3 commit on top, so it is currently seven commits ahead of GitHub `main` (`git rev-list --left-right --count bca34a4...HEAD` returned `0 7`). A pull request from this branch would include all seven commits; integration must first reconcile the baseline or apply the F3 patch relative to `b8045dc`. No pull request was opened.
+The implementation base is six commits ahead of `origin/main` (`git rev-list --left-right --count bca34a4...b8045dc` returned `0 6`). Those commits are part of the deployed local baseline confirmed for this work. The F3 implementation and correction commits are on top, so the current branch is eight commits ahead of GitHub `main` (`git rev-list --left-right --count bca34a4...HEAD` returned `0 8`). A pull request from this branch would include all eight commits; integration must first reconcile the baseline or apply the F3 patch relative to `b8045dc`. No pull request was opened.
 
 ## Validation
 

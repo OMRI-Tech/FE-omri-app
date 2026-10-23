@@ -20,8 +20,8 @@
       <q-card-section >
         <div>
           <p class="text-justify">
-            La <strong>XIX OMRI</strong> busca preparar a los talentos de Morelos para la OMI 2026,
-            la competencia de programación más importante de México.
+            La <strong>XX OMRI</strong> busca preparar a los talentos de Morelos para competencias de programación,
+            incluyendo el proceso de selección nacional conforme a la convocatoria vigente.
           </p>
           <p>
             No recibimos fondos gubernamentales.

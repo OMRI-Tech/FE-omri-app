@@ -464,7 +464,7 @@ export default defineComponent({
     })
     const paymentWindowOpen = computed(() => {
       const closesAt = edition.value && Date.parse(edition.value.payment_closes_at)
-      return Number.isFinite(closesAt) && now.value <= closesAt
+      return Number.isFinite(closesAt) && now.value < closesAt + 1000
     })
     const formatDateTime = value => {
       if (!value) return ''

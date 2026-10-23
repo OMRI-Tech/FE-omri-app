@@ -23,7 +23,7 @@
             <li>Tener menos de 18 años.</li>
             <li>Nacionalidad mexicana o radicar en México, dispuesto a representar a México internacionalmente.</li>
             <li>Inscrito en una institución de nivel básico o medio superior en México.</li>
-            <li>Cursar como máximo el cuarto semestre de nivel medio superior en febrero de 2026.</li>
+            <li>Cursar como máximo el cuarto semestre de nivel medio superior; consulta la convocatoria vigente para conocer el periodo de referencia.</li>
             <li><a href="https://registro.omri.org.mx/" target="_blank">Registrarse en la página oficial</a></li>
             <li>Presentar exámenes estatales en línea siguiendo instrucciones de entrenadores.</li>
             <li>Responsabilidad para trabajar en línea.</li>
