@@ -17,7 +17,9 @@ export default function (ruta, q, actionToresponse, error, property = 'text', pa
       paramsReales[prop] = params[prop]
     }
   }
-  paramsReales.page = 0
+  if (paramsReales.page === undefined) {
+    paramsReales.page = 0
+  }
   paramsReales.q = q
   axios.post(ruta, paramsReales)
     .then(response => {
@@ -28,7 +30,13 @@ export default function (ruta, q, actionToresponse, error, property = 'text', pa
         if (response.data.data.results[i].scopeField !== undefined) opcionesReales[i].scopeField = response.data.data.results[i].scopeField
         if (response.data.data.results[i].color !== undefined) opcionesReales[i].color = response.data.data.results[i].color
       }
-      actionToresponse(opcionesReales)
+      const pagination = response.data.data.pagination
+      const more = pagination ? pagination.more : false
+      actionToresponse(opcionesReales, more)
     })
-    .catch(error)
+    .catch(e => {
+      if (typeof error === 'function') {
+        error(e)
+      }
+    })
 }

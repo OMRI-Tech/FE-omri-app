@@ -1,7 +1,7 @@
 const routes = [
   {
-    path: '/register',
-    component: () => import('pages/Auth/Register.vue'),
+    path: '/register/:origen?',
+    component: () => import('pages/Auth/RegisterLogin.vue'),
     name: 'Register',
     meta: { type: 'auth' }
   },

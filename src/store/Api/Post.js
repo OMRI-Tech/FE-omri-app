@@ -11,7 +11,6 @@ import { Loading, QSpinnerBall } from 'quasar'
  */
 
 export default async function (loadingMessage, url, formData, response, error) {
-  console.log('imprimiendo: ', loadingMessage)
   if (loadingMessage !== null) Loading.show({ message: loadingMessage, spinner: QSpinnerBall })
   await axios({
     method: 'POST',
@@ -26,9 +25,7 @@ export default async function (loadingMessage, url, formData, response, error) {
     })
     .catch(e => {
       Loading.hide()
-      console.error('-----------');
-      console.log(e)
-      if (typeof e === 'function') {
+      if (typeof error === 'function') {
         error(e)
       }
     })

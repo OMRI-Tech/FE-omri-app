@@ -1,6 +1,10 @@
 <template>
   <q-layout class="fullscreen registro">
-    <countdown-timer :targetDateTime="'September 10, 2023 00:00:00'" :countdownMessage="'Tiempo restante para la apertura de la convocatoria:'"></countdown-timer>
+    <countdown-timer
+      v-if="edition && edition.enrollment_open"
+      :targetDateTime="edition.enrollment_closes_at"
+      :countdownMessage="'Tiempo restante para el cierre de inscripciones:'"
+    />
     <div class="items-center back">
       <picture>
         <source :srcset="images.cloudUpw" type="image/webp" />
@@ -36,11 +40,23 @@
       <div class="fixed-center card">
         <div rounded flat class="text-center">
           <div class="q-ma-xs">
-            <p v-if="step === 1" class="title-account q-mb-none q-mt-md animate__delay-1s animate__animated animate__rubberBand">
+            <p v-if="step === 1 && edition" class="title-account q-mb-none q-mt-md animate__delay-1s animate__animated animate__rubberBand">
               Registro para la
-              {{ versionCelular ? 'XVII OMRI' : 'XVII Olimpiada Morelense de Informática' }}
+              {{ versionCelular ? edition.edition : edition.course_name }}
             </p>
+            <q-banner v-if="editionLoading" rounded class="bg-grey-3 q-ma-md">
+              Cargando la convocatoria...
+            </q-banner>
+            <q-banner v-else-if="editionError" rounded class="bg-red text-white q-ma-md">
+              {{ editionError }}
+              <q-btn flat color="white" label="Reintentar" @click="loadEdition" />
+            </q-banner>
+            <q-banner v-if="edition && !edition.enrollment_open" rounded class="bg-orange text-white q-ma-md">
+              La admisión para {{ edition.edition }} cerró el {{ formatDateTime(edition.enrollment_closes_at) }}.
+              Solo las cuentas ya inscritas en esta edición pueden continuar para consultar su inscripción.
+            </q-banner>
             <q-stepper
+              v-if="edition"
               v-model="step"
               vertical
               ref="stepper"
@@ -77,7 +93,7 @@
                     rounded
                     class="q-ma-md full-width button-submit text-button animate__animated animate__pulse animate__infinite"
                     type="submit"
-                    label="Crear cuenta"
+                    label="Continuar"
                     :disabled = verification
                   />
                 </q-form>
@@ -131,9 +147,36 @@
                     v-model="user.grado"
                     :options="opcionesGrado"
                     hint="Grado escolar"
+                    label="Selecciona tu grado escolar"
                     :rules="[val => val || 'Campo Obligatorio']"
                   >
                   </q-select>
+                  <div v-if="!muestraNuevaEscuela">
+                    <q-select
+                      dense
+                      v-model="user.escuela"
+                      :options="optionsEscuela"
+                      @filter="filterEscuela"
+                      @virtual-scroll="debouncedScroll"
+                      use-input
+                      label="Busca y selecciona tu escuela"
+                      hint="Escribe letras para buscar tu escuela"
+                      :loading="loading"
+                    >
+                      <template v-slot:no-option>
+                        <q-item>
+                          <q-item-section class="text-italic text-grey">
+                            <p class="q-mb-none q-mt-none">No conocemos tu escuela :c</p>
+                          </q-item-section>
+                        </q-item>
+                      </template>
+                    </q-select>
+                    <q-btn @click="nuevaEscuela()" color="blue" no-caps flat dense type="button" label="No encuentro mi escuela :c"/>
+                  </div>
+                  <div v-else>
+                    <q-input dense v-model="nuevaEscuelaModel" placeholder="Escribe el nombre de tu escuela" hint="Nombre *"/>
+                    <q-btn @click="nuevaEscuela()" color="blue" no-caps flat dense type="button" label="Buscar escuela"/>
+                  </div>
                   <q-input
                     dense v-model="user.password"
                     class="q-my-sm text-button hidden"
@@ -150,14 +193,14 @@
                   </q-input>
                   <q-btn
                     rounded
-                    class="q-ma-md full-width button-submit text-button"
+                    class="q-mx-md full-width button-submit text-button"
                     type="submit"
                     label="Finalizar registro"
                     :disabled = verificationFull
                   />
                   <q-btn
                     rounded
-                    class="q-ma-md full-width button-submit text-button bg-red"
+                    class="q-mx-md full-width button-submit text-button bg-red"
                     type="button"
                     label="Cerrar y llenar más tarde"
                     @click="reiniciar"
@@ -166,34 +209,61 @@
               </q-step>
               <q-step
                 :name="3"
-                title="Paso 3: Pago del curso"
+                title="Paso 3: Inscripción y pago"
                 icon="savings"
                 :done="step > 3"
               >
                 <q-banner class="bg-green text-white" v-if="!inscripcionPagada">
-                  <h5 class="q-my-sm">Opciones de pago: tarjeta, efectivo, transferencia</h5>
-                  <p>Haz clic abajo para pagar.</p>
-                  <p>Recibirás el link de pago por correo.</p>
-                  <p>Usa tu correo para retomar el registro. Paga antes del <strong>20 de octubre de 2023</strong></p>
-
-                  <q-btn
-                    :ripple="{ color: 'yellow' }"
-                    style="background: #ed358a"
-                    label="Pagar ahora"
-                    size="xl"
-                    :href="link"
-                    target="_blank"
-                    class="animate__animated animate__pulse animate__infinite animate__slower"
-                    no-caps
-                  />
-                  <br/>
-                  <q-btn class="bg-blue q-mt-md" v-if="!clickReciente" rounded type="button" @click="creaLink">
-                    Generar nuevo link de pago
-                  </q-btn>
+                  <h5 class="q-my-sm">{{ paymentWindowOpen ? 'Opciones de pago disponibles' : 'Plazo de pago cerrado' }}</h5>
+                  <p>La cuota de inscripción es de <strong><mark>{{ formatFee(edition.fee_mxn) }}</mark></strong>.</p>
+                  <p>Puedes entrenar desde {{ formatDateTime(edition.training_starts_at) }} aunque el pago siga pendiente. Paga hasta {{ formatDateTime(edition.payment_closes_at) }}.</p>
+                  <div v-if="paymentWindowOpen">
+                    <p v-if="paymentLinkError" class="text-negative">{{ paymentLinkError }}</p>
+                    <!-- Opción de pago en OXXO -->
+                    <div>
+                      <h6 class="q-my-sm">Pago en OXXO</h6>
+                      <p>Haz clic en el botón de abajo para obtener una referencia de pago. Puedes pagar en cualquier sucursal de OXXO.</p>
+                      <q-btn
+                        v-if="link"
+                        :ripple="{ color: 'yellow' }"
+                        style="background: #ed358a"
+                        label="Pagar en OXXO"
+                        size="xl"
+                        :href="link"
+                        target="_blank"
+                        class="animate__animated animate__pulse animate__infinite animate__slower"
+                        no-caps
+                      />
+                      <br/>
+                      <!-- Botón para generar un nuevo link de pago en caso de no haber recibido el anterior -->
+                      <q-btn
+                        class="bg-blue q-mt-md"
+                        v-if="cargoId && !inscripcionPagada"
+                        rounded
+                        type="button"
+                        @click="creaLink"
+                        :loading="linkLoading"
+                        :label="link ? 'Generar nuevo link de pago' : 'Obtener link de pago'"
+                      ></q-btn>
+                      <p class="q-pt-sm">Si no recibiste el link o venció, puedes generar uno nuevo.</p>
+                    </div>
+                    <!-- Opción de pago por transferencia bancaria -->
+                     <hr/>
+                    <div>
+                      <h6 class="q-my-sm">Pago por transferencia bancaria</h6>
+                      <p>Realiza una transferencia por <strong><mark>{{ formatFee(edition.fee_mxn) }}</mark></strong> a la siguiente cuenta CLABE BBVA:</p>
+                      <a style="font-size: 25px; color: white !important" href="tel:012540001162431420">012 540 00116243142 0</a>
+                      <p>A nombre de: Olimpiada Morelense de Informática AC</p>
+                      <p>Coloca en el concepto tu número de folio: <strong>{{ user.id }}</strong></p>
+                      <p>Después de realizar la transferencia, envía el comprobante a <a href="mailto:info@omri.org.mx">info@omri.org.mx</a></p>
+                    </div>
+                  </div>
+                  <p v-else class="text-negative">
+                    El plazo de pago terminó el {{ formatDateTime(edition.payment_closes_at) }}. La inscripción pendiente no requiere otro paso y ya no se pueden generar links de pago.
+                  </p>
                 </q-banner>
                 <q-banner class="bg-green text-white" v-else>
                   <h4>Pago confirmado</h4>
-                  <p>Recibirás el 14 de octubre una contraseña para acceder a nuestra APP</p>
                 </q-banner>
                 <q-btn
                   rounded
@@ -205,7 +275,11 @@
               </q-step>
 
             </q-stepper>
-            <p class="q-mb-sm" v-if="step !== 2">El curso inicia el 14 de octubre de 2023.</p>
+            <p class="q-mb-sm" v-if="edition && step !== 2">
+              Las inscripciones cierran el {{ formatDateTime(edition.enrollment_closes_at) }}.
+              El entrenamiento inicia el {{ formatDateTime(edition.training_starts_at) }}.
+              El pago vence el {{ formatDateTime(edition.payment_closes_at) }}.
+            </p>
             <p class="q-mb-sm" v-if="step !== 2">
               Para conocer más sobre el concurso, visita <a href="https://www.omri.org.mx/#concurso">nuestro sitio web omri.org.mx</a>
             </p>
@@ -221,7 +295,7 @@
 </template>
 
 <script>
-import { ref, defineComponent, reactive, computed, onBeforeMount, onMounted, watch } from 'vue'
+import { ref, defineComponent, reactive, computed, onBeforeMount, onBeforeUnmount, onMounted, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useRoute } from 'vue-router'
 import { Loading, QSpinnerBall, Notify, useQuasar } from 'quasar'
@@ -264,9 +338,9 @@ export default defineComponent({
       birthdate: '',
       facebook: false,
       firebase: '',
-      cargos: null,
-      id: 1,
-      grado: null
+      id: null,
+      grado: null,
+      escuela: null
     })
     // Opciones para grado escolar
     const opcionesGrado = [
@@ -283,12 +357,91 @@ export default defineComponent({
       {value: 11, label: "2do Preparatoria"},
       {value: 12, label: "3ro Preparatoria"}
     ];
-    const clickReciente = ref(false)
     const isPwd = ref(true)
     //const useFacebook = ref(false)
     const inscripcionPagada = ref(false)
+    const edition = ref(null)
+    const editionLoading = ref(true)
+    const editionError = ref('')
+    const omriEnrolled = ref(false)
+    const omriEnrolledCourseId = ref(null)
+    const paymentLinkError = ref('')
+    const linkLoading = ref(false)
+    const cargoId = ref(null)
+    const nuevaEscuelaModel = ref('')
+    const currentPage = ref(0)
+    const currentFilter = ref('')
+    const hasMore = ref(true)
+    const loading = ref(false)
+    // Controla visibilidad de agregar nueva escuela
+    const muestraNuevaEscuela = ref(false)
+    // Model de opciones de nueva escuela
+    const optionsEscuela = ref([])
+    // Manejador de mostrador de nueva escuela
+    const nuevaEscuela = () => {
+      user.value.escuela = null
+      nuevaEscuelaModel.value = ''
+      muestraNuevaEscuela.value = !muestraNuevaEscuela.value
+    }
+    const loadData = (q) => {
+      if (hasMore.value === true) {
+        loading.value = true
+        API.Request.Select2(
+          API.Model('Auth').selectEscuela,
+          q,
+          (opcionesReales, more) => {
+            optionsEscuela.value = [...optionsEscuela.value, ...opcionesReales]
+            hasMore.value = more
+            loading.value = false
+          },
+          (e) => {
+            console.error(e)
+            API.Utils.Notifica('Ocurrió un error al buscar', 'Intenta más tarde', false, 'top');
+            loading.value = false
+          },
+          'text',
+          { page: currentPage.value }
+        )
+      }
+    }
+    // Filtro para select2 de escuela
+    const filterEscuela = (val, update) => {
+      if (val !== currentFilter.value) {
+        currentFilter.value = val
+        optionsEscuela.value = []
+        currentPage.value = 0
+        hasMore.value = true
+        loadData(currentFilter.value)
+      }
+      update(() => {
+        return optionsEscuela.value
+      })
+    }
+    const onScrollSelect = ({ to }) => {
+      if (optionsEscuela.value.length == 0) {
+        currentPage.value = 0
+      }
+      if (loading.value !== true && hasMore.value && to === optionsEscuela.value.length - 1) {
+        if (currentFilter.value.length < 2 && currentPage.value >= 3){
+          return
+        }
+        currentPage.value++
+        loadData(currentFilter.value)
+      }
+    }
+    function debounce(fn, delay) {
+      let timeoutID = null
+      return function (...args) {
+        clearTimeout(timeoutID)
+        timeoutID = setTimeout(() => fn(...args), delay)
+      }
+    }
+    const debouncedScroll = debounce(onScrollSelect, 300);  // 300 ms de retraso
+
     const step = ref(1)
     const link = ref("")
+    const now = ref(Date.now())
+    let paymentWindowInterval = null
     const menuLateral = ref(false)
     const store = useStore()
     const route = useRoute()
@@ -309,8 +462,130 @@ export default defineComponent({
     const versionCelular = computed(() => {
       return $q.screen.lt.sm
     })
+    const paymentWindowOpen = computed(() => {
+      const closesAt = edition.value && Date.parse(edition.value.payment_closes_at)
+      return Number.isFinite(closesAt) && now.value <= closesAt
+    })
+    const formatDateTime = value => {
+      if (!value) return ''
+      const date = new Date(value)
+      if (Number.isNaN(date.getTime())) return value
+      return new Intl.DateTimeFormat('es-MX', {
+        dateStyle: 'full',
+        timeStyle: 'short',
+        timeZone: edition.value && edition.value.timezone ? edition.value.timezone : 'America/Mexico_City'
+      }).format(date)
+    }
+    const formatFee = value => {
+      const amount = Number(value)
+      if (!Number.isFinite(amount)) return ''
+      return `$${new Intl.NumberFormat('es-MX', { maximumFractionDigits: 0 }).format(amount)} MXN`
+    }
+    const apiErrorMessage = (error, fallback) => {
+      const responseData = error && error.response && error.response.data
+      const responseMessage = responseData && (responseData.message || responseData.msg)
+      return responseMessage || fallback
+    }
+    const responseMessage = (response, fallback) => {
+      return response && (response.msg || response.message) ? (response.msg || response.message) : fallback
+    }
+    const notifyError = (message, caption) => {
+      Notify.create({
+        message,
+        caption,
+        avatar: require('assets/img/entrenator.png'),
+        color: 'negative'
+      })
+    }
+    const loadEdition = () => new Promise(resolve => {
+      editionLoading.value = true
+      editionError.value = ''
+      API.Request.Get(
+        null,
+        API.Model('Auth').getCurrentEdition,
+        {},
+        response => {
+          const valid = response && Number(response.course_id) > 0 && Number(response.fee_mxn) > 0 &&
+            typeof response.edition === 'string' && response.edition.trim() &&
+            typeof response.course_name === 'string' && response.course_name.trim() && response.payment_closes_at && response.training_starts_at &&
+            response.enrollment_closes_at && response.timezone && typeof response.enrollment_open === 'boolean'
+          if (!valid) {
+            edition.value = null
+            editionError.value = 'No pudimos cargar una convocatoria válida. Intenta más tarde.'
+          } else {
+            edition.value = response
+          }
+          editionLoading.value = false
+          resolve(valid ? response : null)
+        },
+        error => {
+          edition.value = null
+          const data = error && error.response && error.response.data
+          editionError.value = data && ['edition_not_configured', 'omri_edition_unavailable'].includes(data.error)
+            ? (data.message || 'La convocatoria todavía no está configurada.')
+            : apiErrorMessage(error, 'No pudimos cargar la convocatoria. Intenta más tarde.')
+          editionLoading.value = false
+          resolve(null)
+        }
+      )
+    })
+    const requestPaymentLink = regenerate => {
+      if (!cargoId.value) {
+        paymentLinkError.value = 'No encontramos un cargo pendiente de esta edición.'
+        return
+      }
+      if (!paymentWindowOpen.value) {
+        paymentLinkError.value = `El plazo de pago terminó el ${formatDateTime(edition.value.payment_closes_at)}.`
+        link.value = ''
+        return
+      }
+      paymentLinkError.value = ''
+      linkLoading.value = true
+      const params = { cargo_id: cargoId.value }
+      if (regenerate) params.ignora = 'true'
+      API.Request.Get(
+        'Recuperando link de pago...',
+        API.Model('Auth').payLink,
+        params,
+        response => {
+          const paymentUrl = Number(response && response.status) === 1 && response.data
+          if (typeof paymentUrl !== 'string' || !paymentUrl.trim()) {
+            link.value = ''
+            paymentLinkError.value = 'Tu inscripción está guardada, pero no pudimos obtener el link de pago. Intenta de nuevo.'
+          } else {
+            link.value = paymentUrl.trim()
+            Notify.create({
+              message: regenerate ? 'Se generó un nuevo link de pago' : 'Tu inscripción quedó guardada',
+              caption: 'El pago está pendiente; puedes comenzar el entrenamiento en la fecha indicada.',
+              avatar: require('assets/img/entrenator.png'),
+              color: 'positive'
+            })
+          }
+          linkLoading.value = false
+        },
+        error => {
+          link.value = ''
+          paymentLinkError.value = apiErrorMessage(
+            error,
+            'Tu inscripción está guardada, pero no pudimos obtener el link de pago. Intenta de nuevo.'
+          )
+          linkLoading.value = false
+        }
+      )
+    }
     const actualizacionDatos = async () => {
-      Loading.show({ message: 'Cargando...', spinner: QSpinnerBall })
+      if (!edition.value || !user.value.id) {
+        notifyError('No pudimos continuar con la inscripción', 'Vuelve a verificar tu correo electrónico.')
+        return
+      }
+      const currentEdition = await loadEdition()
+      if (!currentEdition) return
+      if (!currentEdition.enrollment_open &&
+        (!omriEnrolled.value || Number(omriEnrolledCourseId.value) !== Number(currentEdition.course_id))) {
+        notifyError('La admisión está cerrada', `Solo pueden continuar quienes ya estaban inscritos en ${currentEdition.edition} antes del ${formatDateTime(currentEdition.enrollment_closes_at)}.`)
+        return
+      }
+      Loading.show({ message: 'Guardando tus datos...', spinner: QSpinnerBall })
       const formData = new FormData()
       formData.append('name', user.value.name)
       formData.append('lastname', user.value.lname)
@@ -324,7 +599,12 @@ export default defineComponent({
       if (user.value.grado !== null) {
         formData.append('id_grado', user.value.grado.value)
       }
-      formData.append('paquete_id', 9)
+      if (user.value.escuela && typeof user.value.escuela === 'object') {
+        formData.append('id_escuela', user.value.escuela.value)
+      } else if (nuevaEscuelaModel.value.trim()) {
+        formData.append('escuela', nuevaEscuelaModel.value.trim())
+      }
+      formData.append('paquete_id', currentEdition.course_id)
       formData.append('activar', 1)
       formData.append('firebase', user.value.firebase)
       if (route.params.origen && route.params.origen.length) {
@@ -335,106 +615,73 @@ export default defineComponent({
         API.Model('Auth').updateUser + user.value.id,
         formData,
         response => {
-          if (response.status === 1) {
-            console.log('actualizado: ', response)
-            if(user.value.cargos === null){
-              API.Request.Post(
-                'Registrando inscripción...',
-                API.Model('Auth').agregarInscripcion,
-                {
-                  user_id: user.value.id,
-                  fecha: '2023-10-20',
-                  tipo: 'inscripcion'
-                },
-                res2 => {
-                  console.log('aqui esta el cargo para pagar', res2)
-                  API.Request.Get(
-                    'Creando liga de pago...',
-                    API.Model('Auth').payLink,
-                    {
-                      cargo_id: res2.data.cargo_id
-                    },
-                    res3 => {
-                      step.value = 3
-                      console.log('aqui esta el cargo para pagar', res3)
-                      link.value = res3.data
-                      Notify.create({
-                        message: 'Se guardó exitosamente',
-                        caption: 'Tu registro esta completo',
-                        avatar: require('assets/img/entrenator.png'),
-                        color: 'positive',
-                        // classes: 'horizontal-center'
-                      })
-                    }
-                  )
-                }
-              )
-            }else{
-              if(user.value.cargos.pagado === 0){
-                console.log('aqui esta el cargo para pagar2', user.value.cargos, user.value.cargos.id)
-                if(user.value.cargos.conekta === null){
-                  API.Request.Get(
-                    'Creando liga de pago...',
-                    API.Model('Auth').payLink,
-                    {
-                      cargo_id: user.value.cargos.id
-                    },
-                    res3 => {
-                      step.value = 3
-                      console.log('aqui esta el cargo para pagar', res3)
-                      link.value = res3.data
-                      Notify.create({
-                        message: 'Se guardó exitosamente',
-                        caption: 'Tu registro esta completo',
-                        avatar: require('assets/img/entrenator.png'),
-                        color: 'positive',
-                        // classes: 'horizontal-center'
-                      })
-                    }
-                  )
-                } else {
-                  link.value = user.value.cargos.conekta.url
-                  step.value = 3
-                }
-              } else {
-                step.value = 3
-                console.log('aqui esta el cargo para pagar', user.value.cargos)
-                inscripcionPagada.value = true
-                Notify.create({
-                  message: 'Se guardó exitosamente',
-                  caption: 'Tu registro esta completo',
-                  avatar: require('assets/img/entrenator.png'),
-                  color: 'positive',
-                  // classes: 'horizontal-center'
-                })
-              }
-            }
-          } else {
-            Notify.create({
-              message: 'Ocurrió un error al actualizar olímpico',
-              caption: !noServerError ? 'Intenta más tarde' : 'No pudimos actualizar tu usuario',
-              avatar: require('assets/img/entrenator.png'),
-              color: !noServerError ? 'negative' : 'info',
-              // classes: 'horizontal-center'
-            })
+          if (Number(response && response.status) !== 1) {
+            Loading.hide()
+            notifyError('No pudimos guardar tus datos', responseMessage(response, 'Intenta más tarde.'))
+            return
           }
-          Loading.hide()
+          API.Request.Post(
+            'Registrando inscripción...',
+            API.Model('Auth').createOmriEnrollment,
+            {
+              user_id: user.value.id,
+              course_id: currentEdition.course_id
+            },
+            enrollmentResponse => {
+              Loading.hide()
+              const enrollment = enrollmentResponse && enrollmentResponse.data
+              if (Number(enrollmentResponse && enrollmentResponse.status) !== 1 || !enrollment) {
+                notifyError('No pudimos confirmar tu inscripción', responseMessage(enrollmentResponse, 'Intenta más tarde.'))
+                return
+              }
+              const paymentClosesAt = Date.parse(enrollment.payment_closes_at)
+              if (Number(enrollment.course_id) !== Number(currentEdition.course_id) ||
+                String(enrollment.course_name || '').trim() !== String(currentEdition.course_name).trim() ||
+                Number(enrollment.fee_mxn) !== Number(currentEdition.fee_mxn) ||
+                paymentClosesAt !== Date.parse(currentEdition.payment_closes_at) || !enrollment.cargo_id) {
+                notifyError('No pudimos confirmar tu inscripción', 'El cargo devuelto no coincide con la convocatoria actual. Contacta a info@omri.org.mx.')
+                return
+              }
+              cargoId.value = enrollment.cargo_id
+              inscripcionPagada.value = enrollment.pagado === true || Number(enrollment.pagado) === 1
+              paymentLinkError.value = ''
+              link.value = typeof enrollment.payment_url === 'string' ? enrollment.payment_url : ''
+              step.value = 3
+              if (inscripcionPagada.value) {
+                link.value = ''
+                Notify.create({
+                  message: 'Inscripción confirmada',
+                  caption: 'El pago de esta edición ya está confirmado.',
+                  avatar: require('assets/img/entrenator.png'),
+                  color: 'positive'
+                })
+              } else {
+                if (link.value) {
+                  Notify.create({
+                    message: 'Tu inscripción quedó guardada',
+                    caption: 'El pago está pendiente; puedes comenzar el entrenamiento en la fecha indicada.',
+                    avatar: require('assets/img/entrenator.png'),
+                    color: 'positive'
+                  })
+                } else {
+                  requestPaymentLink(false)
+                }
+              }
+            },
+            error => {
+              Loading.hide()
+              notifyError('No pudimos confirmar tu inscripción', apiErrorMessage(error, 'Intenta más tarde.'))
+            }
+          )
         },
         error => {
-          const noServerError = error.status === 422
-          Notify.create({
-            message: 'Ocurrió un error',
-            caption: !noServerError ? 'Intenta más tarde' : 'No pudimos actualizar tu usuario',
-            avatar: require('assets/img/entrenator.png'),
-            color: !noServerError ? 'negative' : 'info',
-            // classes: 'horizontal-center'
-          })
+          Loading.hide()
+          notifyError('No pudimos guardar tus datos', apiErrorMessage(error, 'Intenta más tarde.'))
         }
       )
     }
     const reiniciar = () => {
       step.value = 1
-      clickReciente.value = false
       user.value.name = ''
       user.value.email = ''
       user.value.password = ''
@@ -444,91 +691,106 @@ export default defineComponent({
       user.value.birthdate = ''
       user.value.facebook = false
       user.value.firebase = ''
-      user.value.id = 1
-      user.value.cargos = null
+      user.value.id = null
       user.value.grado = null
+      user.value.escuela = null
+      omriEnrolled.value = false
+      omriEnrolledCourseId.value = null
       inscripcionPagada.value = false
+      muestraNuevaEscuela.value = false
+      currentPage.value = 0
+      currentFilter.value = ''
+      nuevaEscuelaModel.value = ''
+      hasMore.value = true
+      loading.value = false
+      muestraNuevaEscuela.value = false
+      optionsEscuela.value = []
       link.value = ''
+      cargoId.value = null
+      linkLoading.value = false
+      paymentLinkError.value = ''
     }
     const registroEmail = async () => {
+      const currentEdition = await loadEdition()
+      if (!currentEdition) return
       Loading.show({ message: 'Guardando...', spinner: QSpinnerBall })
-      await API.Request.Post(
+      API.Request.Post(
         'Guardando...',
         API.Model('Auth').getUser,
         { email: user.value.email },
         response => {
           user.value.password = user.value.email
-          if (response.status === 1) {
-            console.log('existe, se rellena', response)
-            /// existe, se rellena
+          if (Number(response && response.status) === 1) {
+            omriEnrolled.value = response.omri_enrolled === true || Number(response.omri_enrolled) === 1
+            omriEnrolledCourseId.value = Number(response.course_id) || null
+            if (!currentEdition.enrollment_open &&
+              (!omriEnrolled.value || Number(omriEnrolledCourseId.value) !== Number(currentEdition.course_id))) {
+              Loading.hide()
+              notifyError('La admisión está cerrada', `Solo pueden continuar quienes ya estaban inscritos en ${currentEdition.edition} antes del ${formatDateTime(currentEdition.enrollment_closes_at)}.`)
+              return
+            }
             user.value.id = response.data
             user.value.name = response.nombre || ''
             user.value.lname = response.apellidopat || ''
             user.value.mlname = response.apellidomat || ''
             user.value.telNum = response.telefono || ''
             user.value.birthdate = response.birth || null
-            user.value.cargos = response.cargos
-            user.value.grado = opcionesGrado[response.grado-1]
-          } else { // no existe, se crea
-            console.log('no existe, se crea')
-            const formData = new FormData()
-            formData.append('name', user.value.name)
-            formData.append('email', user.value.email)
-            formData.append('password', user.value.password)
-            formData.append('id_status', 1)
-            formData.append('id_nivel', 1)
-            if (route.params.origen && route.params.origen.length) {
-              formData.append('matricula', route.params.origen)
+            cargoId.value = null
+            link.value = ''
+            inscripcionPagada.value = false
+            user.value.grado = opcionesGrado[Number(response.grado) - 1] || null
+            user.value.escuela = null
+            if (response.escuela && response.escuela.id) {
+              user.value.escuela = { label: response.escuela.nombre, value: response.escuela.id }
+              optionsEscuela.value = [user.value.escuela]
             }
-            API.Request.Post(
-              'Creando olímpico...',
-              API.Model('Auth').addUser,
-              formData,
-              response => {
-                if (response.status === 1) {
-                  user.value.id = response.data.id
-                }
-              }
-            )
+            step.value = 2
+            Loading.hide()
+            return
           }
-          step.value = 2
-          Loading.hide()
+          if (!currentEdition.enrollment_open) {
+            Loading.hide()
+            notifyError('La admisión está cerrada', `Las inscripciones para ${currentEdition.edition} cerraron el ${formatDateTime(currentEdition.enrollment_closes_at)}.`)
+            return
+          }
+          const formData = new FormData()
+          formData.append('name', user.value.name)
+          formData.append('email', user.value.email)
+          formData.append('password', user.value.password)
+          formData.append('id_status', 1)
+          formData.append('id_nivel', 1)
+          if (route.params.origen && route.params.origen.length) {
+            formData.append('matricula', route.params.origen)
+          }
+          API.Request.Post(
+            'Creando olímpico...',
+            API.Model('Auth').addUser,
+            formData,
+            createResponse => {
+              Loading.hide()
+              if (Number(createResponse && createResponse.status) !== 1 || !createResponse.data || !createResponse.data.id) {
+                notifyError('No pudimos crear tu cuenta', responseMessage(createResponse, 'Intenta más tarde.'))
+                return
+              }
+              user.value.id = createResponse.data.id
+              omriEnrolled.value = false
+              omriEnrolledCourseId.value = null
+              step.value = 2
+            },
+            error => {
+              Loading.hide()
+              notifyError('No pudimos crear tu cuenta', apiErrorMessage(error, 'Intenta más tarde.'))
+            }
+          )
         },
         error => {
-          const noServerError = error.status === 422
-          Notify.create({
-            message: 'Ocurrió un error!!',
-            caption: !noServerError ? 'Intenta más tarde' : 'No pudimos guardar tu correo',
-            avatar: require('assets/img/entrenator.png'),
-            color: !noServerError ? 'negative' : 'info',
-            // classes: 'horizontal-center'
-          })
+          Loading.hide()
+          notifyError('No pudimos buscar tu correo', apiErrorMessage(error, 'Intenta más tarde.'))
         }
       )
     }
-    const creaLink = async () => {
-      API.Request.Get(
-        'Creando liga de pago...',
-        API.Model('Auth').payLink,
-        {
-          cargo_id: user.value.cargos.id,
-          ignora: 'true'
-        },
-        res3 => {
-          clickReciente.value = true
-          step.value = 3
-          console.log('aqui esta el cargo para pagar', res3)
-          link.value = res3.data
-          Notify.create({
-            message: '¡Se generó otro link de pago!',
-            caption: 'Se envió a tu WhatsApp también',
-            avatar: require('assets/img/entrenator.png'),
-            color: 'positive',
-            position: 'center'
-            // classes: 'horizontal-center'
-          })
-        }
-      )
+    const creaLink = () => {
+      requestPaymentLink(true)
     }
     watch(user.value, newVal => {
       const isConTypo = newVal.email.endsWith('.con');
@@ -542,9 +804,16 @@ export default defineComponent({
     });
     onMounted(() => {
       menuLateral.value = false
+      loadEdition()
+      paymentWindowInterval = setInterval(() => {
+        now.value = Date.now()
+      }, 1000)
       setTimeout(() => {
         Loading.hide()
       }, 500)
+    })
+    onBeforeUnmount(() => {
+      if (paymentWindowInterval) clearInterval(paymentWindowInterval)
     })
     const muestraMenu = () => {
       menuLateral.value = true
@@ -553,17 +822,34 @@ export default defineComponent({
       user,
       images,
       opcionesGrado,
-      clickReciente,
       isPwd,
       verification,
       verificationFull,
       versionCelular,
+      edition,
+      editionLoading,
+      editionError,
+      loadEdition,
+      formatDateTime,
+      formatFee,
+      paymentWindowOpen,
       menuLateral,
+      nuevaEscuelaModel,
+      loading,
+      onScrollSelect,
+      muestraNuevaEscuela,
+      optionsEscuela,
+      nuevaEscuela,
+      debouncedScroll,
+      filterEscuela,
       registroEmail,
       reiniciar,
       actualizacionDatos,
       creaLink,
       inscripcionPagada,
+      paymentLinkError,
+      linkLoading,
+      cargoId,
       link,
       step,
       store,

@@ -6,6 +6,8 @@
  export default function (model) {
   return {
     getUser:  `api/encuentra-alumno`,
+    getCurrentEdition: 'api/omri/edicion-actual',
+    createOmriEnrollment: 'api/omri/inscripcion',
     getMe: 'api/get-alumno/',
     addUser: 'api/add-alumno',
     updateUser: 'api/update-alumno/',
