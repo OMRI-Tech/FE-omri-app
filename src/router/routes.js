@@ -31,7 +31,7 @@ const routes = [
         path: 'minijuegos',
         component: () => import('pages/MiniJuegos.vue'),
         name: 'MiniGames',
-        meta: { auth: true, training: true }
+        meta: { auth: true, training: true, legacyContent: true }
       }
     ]
   },
