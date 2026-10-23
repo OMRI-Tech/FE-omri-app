@@ -301,6 +301,7 @@ import { useRoute } from 'vue-router'
 import { Loading, QSpinnerBall, Notify, useQuasar } from 'quasar'
 import axios from 'axios'
 import * as API from 'src/store/Api'
+import { trackMetaCompleteRegistration, trackMetaViewContent } from 'boot/meta-tracking'
 import CountdownTimer from "components/CountdownTimer.vue"
 import DrawerMenu from "components/DrawerMenu.vue"
 import 'animate.css'
@@ -463,6 +464,23 @@ export default defineComponent({
     const versionCelular = computed(() => {
       return $q.screen.lt.sm
     })
+    const trackCompleteRegistrationEvent = subscriptionId => {
+      const courseId = edition.value && edition.value.course_id
+      const userId = user.value && user.value.id
+      const eventKey = `omri_complete_registration_${courseId}_${userId}`
+      if (typeof window !== 'undefined') {
+        try {
+          if (window.sessionStorage.getItem(eventKey)) return
+          window.sessionStorage.setItem(eventKey, '1')
+        } catch (error) {
+          // Tracking should not block registration when browser storage is unavailable.
+        }
+      }
+      void trackMetaCompleteRegistration({
+        user: user.value,
+        subscriptionId
+      })
+    }
     const paymentWindowOpen = computed(() => {
       const closesAt = edition.value && Date.parse(edition.value.payment_closes_at)
       return Number.isFinite(closesAt) && now.value < closesAt + 1000
@@ -656,6 +674,7 @@ export default defineComponent({
               paymentLinkError.value = ''
               link.value = typeof enrollment.payment_url === 'string' ? enrollment.payment_url : ''
               step.value = 3
+              trackCompleteRegistrationEvent(enrollment.cargo_id)
               if (inscripcionPagada.value) {
                 link.value = ''
                 Notify.create({
@@ -754,6 +773,9 @@ export default defineComponent({
               optionsEscuela.value = [user.value.escuela]
             }
             step.value = 2
+            void trackMetaViewContent({
+              user: user.value
+            })
             Loading.hide()
             return
           }
@@ -814,6 +836,9 @@ export default defineComponent({
     onMounted(() => {
       menuLateral.value = false
       loadEdition()
+      void trackMetaViewContent({
+        user: user.value
+      })
       paymentWindowInterval = setInterval(() => {
         now.value = Date.now()
       }, 1000)
