@@ -28,6 +28,32 @@ const editionProfileDetails = profile => {
   return { editionName, courseId, enrolled, isEditionProfile }
 }
 
+const verifyOmriAccess = () => new Promise(resolve => {
+  API.Request.Get(
+    null,
+    API.Model('Auth').getOmriAccess,
+    {},
+    response => {
+      const access = response && response.data
+      const validReasons = ['allowed', 'payment_required', 'not_enrolled', 'training_not_started']
+      const validResponse = Number(response && response.status) === 1 && access &&
+        typeof access.allowed === 'boolean' && validReasons.includes(access.reason) &&
+        typeof access.paid === 'boolean' && isValidRfc3339Timestamp(access.payment_closes_at)
+      if (!validResponse || access.allowed !== (access.reason === 'allowed')) {
+        resolve({ allowed: false, reason: 'unavailable' })
+        return
+      }
+      resolve({
+        allowed: access.allowed,
+        reason: access.reason,
+        paid: access.paid,
+        paymentClosesAt: access.payment_closes_at
+      })
+    },
+    () => resolve({ allowed: false, reason: 'unavailable' })
+  )
+})
+
 const verifyTrainingAccess = profile => new Promise(resolve => {
   const profileDetails = editionProfileDetails(profile)
   if (!profileDetails.isEditionProfile) {
@@ -57,10 +83,16 @@ const verifyTrainingAccess = profile => new Promise(resolve => {
         return
       }
 
+      const isOmriEdition = currentEdition.edition.trim().toLocaleUpperCase() === 'XX OMRI'
+      if (isOmriEdition) {
+        verifyOmriAccess().then(access => resolve({ ...access, isOmriEdition }))
+        return
+      }
+
       resolve({
         allowed: Date.now() >= Date.parse(currentEdition.training_starts_at),
         reason: 'not_started',
-        isOmriEdition: currentEdition.edition.trim().toLocaleUpperCase() === 'XX OMRI'
+        isOmriEdition: false
       })
     },
     () => resolve({ allowed: false, reason: 'unavailable' })
@@ -86,12 +118,18 @@ export default route(function (/* { store, ssrContext } */) {
         const access = await verifyTrainingAccess(Store().getters['auth/user'])
         if (!access.allowed) {
           Notify.create({
-            message: access.reason === 'not_started'
+            message: access.reason === 'training_not_started' || access.reason === 'not_started'
               ? 'El entrenamiento todavía no inicia.'
-              : access.reason === 'not_enrolled'
-                ? 'No pudimos verificar tu inscripción en la edición actual.'
-                : 'No pudimos verificar la fecha de inicio de la edición.',
-            caption: 'Consulta el estado de tu inscripción para continuar.',
+              : access.reason === 'payment_required'
+                ? 'El pago venció y el acceso al entrenamiento está suspendido hasta que se confirme el pago.'
+                : access.reason === 'not_enrolled'
+                  ? 'No pudimos verificar tu inscripción en la edición actual.'
+                  : access.reason === 'unavailable' && access.isOmriEdition
+                    ? 'No pudimos verificar tu acceso al entrenamiento.'
+                    : 'No pudimos verificar la fecha de inicio de la edición.',
+            caption: access.reason === 'payment_required'
+              ? 'Consulta el estado de tu inscripción para actualizar la confirmación del pago.'
+              : 'Consulta el estado de tu inscripción para continuar.',
             color: 'warning',
             position: 'top'
           })

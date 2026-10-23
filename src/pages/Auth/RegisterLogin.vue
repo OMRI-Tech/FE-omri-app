@@ -247,9 +247,10 @@
                 :done="step > 3"
               >
                 <q-banner class="bg-green text-white" v-if="!inscripcionPagada">
-                  <h5 class="q-my-sm">{{ paymentWindowOpen ? 'Opciones de pago disponibles' : 'Plazo de pago cerrado' }}</h5>
+                  <h5 class="q-my-sm">{{ paymentWindowOpen ? 'Opciones de pago disponibles' : 'Pago vencido: acceso suspendido' }}</h5>
                   <p>La cuota de inscripción es de <strong><mark>{{ formatFee(edition.fee_mxn) }}</mark></strong>.</p>
-                  <p>Puedes entrenar desde {{ formatDateTime(edition.training_starts_at) }} aunque el pago siga pendiente. Paga hasta {{ formatDateTime(edition.payment_closes_at) }}.</p>
+                  <p v-if="paymentWindowOpen">Puedes entrenar desde {{ formatDateTime(edition.training_starts_at) }} aunque el pago siga pendiente. Paga hasta {{ formatDateTime(enrollmentPaymentClosesAt || edition.payment_closes_at) }}.</p>
+                  <p v-else>La inscripción y su cargo se conservan, pero el acceso al entrenamiento está suspendido hasta que se confirme el pago. El plazo terminó el {{ formatDateTime(enrollmentPaymentClosesAt || edition.payment_closes_at) }} y el enlace de pago ya venció.</p>
                   <div v-if="paymentWindowOpen">
                     <p v-if="paymentLinkError" class="text-negative">{{ paymentLinkError }}</p>
                     <div>
@@ -280,9 +281,6 @@
                       <p class="q-pt-sm">Si no recibiste el enlace, puedes recuperarlo o reenviarlo aquí.</p>
                     </div>
                   </div>
-                  <p v-else class="text-negative">
-                    El plazo de pago terminó el {{ formatDateTime(edition.payment_closes_at) }}. La inscripción pendiente no requiere otro paso y ya no se pueden generar links de pago.
-                  </p>
                 </q-banner>
                 <q-banner class="bg-green text-white" v-else>
                   <h4>Pago confirmado</h4>
@@ -404,6 +402,7 @@ export default defineComponent({
     const paymentLinkError = ref('')
     const linkLoading = ref(false)
     const cargoId = ref(null)
+    const enrollmentPaymentClosesAt = ref('')
     const nuevaEscuelaModel = ref('')
     const currentPage = ref(0)
     const currentFilter = ref('')
@@ -521,7 +520,10 @@ export default defineComponent({
     }
     const paymentWindowOpen = computed(() => {
       if (!hasValidEditionDates(edition.value)) return false
-      const closesAt = Date.parse(edition.value.payment_closes_at)
+      const closesAtValue = cargoId.value && isValidRfc3339Timestamp(enrollmentPaymentClosesAt.value)
+        ? enrollmentPaymentClosesAt.value
+        : edition.value.payment_closes_at
+      const closesAt = Date.parse(closesAtValue)
       return now.value < closesAt + 1000
     })
     const trainingStarted = computed(() => {
@@ -686,6 +688,7 @@ export default defineComponent({
       if (!persistAuthenticatedSession(sessionProfile, response.access_token, true)) return false
       populateProfileForm(profile, user.value.email.trim())
       cargoId.value = null
+      enrollmentPaymentClosesAt.value = ''
       link.value = ''
       inscripcionPagada.value = false
       step.value = 2
@@ -734,8 +737,14 @@ export default defineComponent({
         paymentLinkError.value = 'No encontramos un cargo pendiente de esta edición.'
         return
       }
+      const closesAt = enrollmentPaymentClosesAt.value || edition.value.payment_closes_at
+      if (!isValidRfc3339Timestamp(closesAt)) {
+        paymentLinkError.value = 'No pudimos verificar el plazo de pago de esta inscripción.'
+        link.value = ''
+        return
+      }
       if (!paymentWindowOpen.value) {
-        paymentLinkError.value = `El plazo de pago terminó el ${formatDateTime(edition.value.payment_closes_at)}.`
+        paymentLinkError.value = `El plazo de pago terminó el ${formatDateTime(closesAt)}.`
         link.value = ''
         return
       }
@@ -746,12 +755,15 @@ export default defineComponent({
         API.Model('Auth').payLink,
         { cargo_id: cargoId.value },
         response => {
-          const paymentUrl = Number(response && response.status) === 1 && response.data
-          if (typeof paymentUrl !== 'string' || !paymentUrl.trim()) {
+          now.value = Date.now()
+          if (!paymentWindowOpen.value) {
+            link.value = ''
+            paymentLinkError.value = `El plazo de pago terminó el ${formatDateTime(closesAt)}.`
+          } else if (Number(response && response.status) !== 1 || typeof response.data !== 'string' || !response.data.trim()) {
             link.value = ''
             paymentLinkError.value = 'Tu inscripción está guardada, pero no pudimos obtener el link de pago. Intenta de nuevo.'
           } else {
-            link.value = paymentUrl.trim()
+            link.value = response.data.trim()
             Notify.create({
               message: 'Enlace de pago disponible',
               caption: 'Recuperamos el enlace vigente de tu cargo. El pago sigue pendiente.',
@@ -790,9 +802,13 @@ export default defineComponent({
         return false
       }
       cargoId.value = enrollment.cargo_id
+      enrollmentPaymentClosesAt.value = enrollment.payment_closes_at
+      now.value = Date.now()
       inscripcionPagada.value = enrollment.pagado === true || Number(enrollment.pagado) === 1
       paymentLinkError.value = ''
-      link.value = typeof enrollment.payment_url === 'string' ? enrollment.payment_url : ''
+      link.value = paymentWindowOpen.value && typeof enrollment.payment_url === 'string'
+        ? enrollment.payment_url
+        : ''
       step.value = 3
       persistAuthenticatedSession(profileForEdition(LocalStorage.getItem('user_logged') || {}, currentEdition))
       trackCompleteRegistrationEvent(enrollment.cargo_id)
@@ -804,6 +820,8 @@ export default defineComponent({
           avatar: require('assets/img/entrenator.png'),
           color: 'positive'
         })
+      } else if (!paymentWindowOpen.value) {
+        link.value = ''
       } else if (link.value) {
         Notify.create({
           message: 'Tu inscripción quedó guardada',
@@ -968,6 +986,7 @@ export default defineComponent({
       optionsEscuela.value = []
       link.value = ''
       cargoId.value = null
+      enrollmentPaymentClosesAt.value = ''
       linkLoading.value = false
       paymentLinkError.value = ''
     }
@@ -1122,6 +1141,7 @@ export default defineComponent({
       paymentLinkError,
       linkLoading,
       cargoId,
+      enrollmentPaymentClosesAt,
       link,
       step,
       store,
