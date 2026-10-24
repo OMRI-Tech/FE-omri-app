@@ -5,6 +5,7 @@ import { auth, db, provider } from "boot/firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithRedirect, signOut } from 'firebase/auth'
 import { router } from 'src/router';
+const appendUserUpdateFields = require('./appendUserUpdateFields')
 
 export function Login ({}, params) {
   const formData = new FormData()
@@ -444,10 +445,7 @@ export async function enviaOTP ({ commit }, details) {
 export async function actualizaDatosPersonales ({}, details) {
   const { user, callback } = details
   const formData = new FormData()
-  for (var key in user) {
-    if(user[key] !== null)
-      formData.append(key, user[key])
-  }
+  appendUserUpdateFields(formData, user)
   await API.Request.Post(
     'Actualizando datos del olímpico',
     API.Model('Auth').updateUser + user.id,

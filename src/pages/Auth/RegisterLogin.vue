@@ -198,31 +198,58 @@
                     :rules="[val => val || 'Campo Obligatorio']"
                   >
                   </q-select>
-                  <div v-if="!muestraNuevaEscuela">
+                  <div>
                     <q-select
                       dense
                       v-model="user.escuela"
                       :options="optionsEscuela"
                       @filter="filterEscuela"
+                      @update:model-value="onSchoolSelected"
                       @virtual-scroll="debouncedScroll"
                       use-input
                       label="Busca y selecciona tu escuela"
                       hint="Escribe letras para buscar tu escuela"
                       :loading="loading"
+                      :rules="[val => !!val || schoolChoiceAcknowledged || existingSchoolId !== null || 'Selecciona una escuela o continúa sin ella']"
                     >
                       <template v-slot:no-option>
                         <q-item>
                           <q-item-section class="text-italic text-grey">
-                            <p class="q-mb-none q-mt-none">No conocemos tu escuela :c</p>
+                            <p v-if="schoolSearchError" class="q-mb-none q-mt-none">No pudimos buscar las escuelas. Inténtalo de nuevo.</p>
+                            <p v-else-if="loading" class="q-mb-none q-mt-none">Buscando escuelas…</p>
+                            <p v-else-if="currentFilter.trim()" class="q-mb-none q-mt-none">No encontramos coincidencias. Puedes continuar sin escuela asignada.</p>
+                            <p v-else class="q-mb-none q-mt-none">Escribe para buscar una escuela del catálogo.</p>
                           </q-item-section>
                         </q-item>
                       </template>
                     </q-select>
-                    <q-btn @click="nuevaEscuela()" color="blue" no-caps flat dense type="button" label="No encuentro mi escuela :c"/>
-                  </div>
-                  <div v-else>
-                    <q-input dense v-model="nuevaEscuelaModel" placeholder="Escribe el nombre de tu escuela" hint="Nombre *"/>
-                    <q-btn @click="nuevaEscuela()" color="blue" no-caps flat dense type="button" label="Buscar escuela"/>
+                    <q-btn
+                      v-if="schoolSearchError"
+                      @click.stop="retrySchoolSearch"
+                      color="blue"
+                      no-caps
+                      flat
+                      dense
+                      type="button"
+                      label="Reintentar búsqueda"
+                    />
+                    <q-btn
+                      v-if="existingSchoolId === null && !user.escuela"
+                      @click="confirmNoSchool"
+                      color="blue"
+                      no-caps
+                      flat
+                      dense
+                      type="button"
+                      label="Continuar sin escuela"
+                      :disable="schoolChoiceAcknowledged"
+                    />
+                    <p v-if="schoolChoiceAcknowledged" class="text-caption q-mb-none">
+                      Tu inscripción continuará sin escuela asignada. Puedes agregarla después.
+                    </p>
+                    <p v-else-if="existingSchoolId !== null" class="text-caption q-mb-none">
+                      Si no eliges otra opción, se conservará la escuela que ya tienes asignada.
+                    </p>
                   </div>
                   <q-btn
                     rounded
@@ -342,6 +369,8 @@ import cloudUpw from "assets/img/webp/cloud-up.png.webp";
 import cloudDownw from "assets/img/webp/cloud-down.png.webp";
 import omri from "assets/logos/omri.png";
 import omriw from "assets/logos/webp/omri.png.webp";
+const createRequestSequence = require('src/utils/requestSequence')
+const { getSchoolOptionId, appendSchoolId } = require('src/utils/schoolSelection')
 
 export default defineComponent({
   components: {
@@ -403,39 +432,48 @@ export default defineComponent({
     const linkLoading = ref(false)
     const cargoId = ref(null)
     const enrollmentPaymentClosesAt = ref('')
-    const nuevaEscuelaModel = ref('')
     const currentPage = ref(0)
     const currentFilter = ref('')
     const hasMore = ref(true)
     const loading = ref(false)
-    // Controla visibilidad de agregar nueva escuela
-    const muestraNuevaEscuela = ref(false)
-    // Model de opciones de nueva escuela
+    const schoolSearchError = ref(false)
+    const schoolChoiceAcknowledged = ref(false)
+    const existingSchoolId = ref(null)
+    const schoolSearchRequests = createRequestSequence()
     const optionsEscuela = ref([])
-    // Manejador de mostrador de nueva escuela
-    const nuevaEscuela = () => {
-      user.value.escuela = null
-      nuevaEscuelaModel.value = ''
-      muestraNuevaEscuela.value = !muestraNuevaEscuela.value
+    const confirmNoSchool = () => {
+      if (existingSchoolId.value !== null || getSchoolOptionId(user.value.escuela) !== null) return
+      schoolChoiceAcknowledged.value = true
     }
-    const loadData = (q) => {
+    const onSchoolSelected = school => {
+      if (getSchoolOptionId(school) !== null) {
+        schoolChoiceAcknowledged.value = false
+      }
+    }
+    const loadData = (q, requestId, page = currentPage.value) => {
       if (hasMore.value === true) {
         loading.value = true
         API.Request.Select2(
           API.Model('Auth').selectEscuela,
           q,
           (opcionesReales, more) => {
-            optionsEscuela.value = [...optionsEscuela.value, ...opcionesReales]
+            if (!schoolSearchRequests.isCurrent(requestId) || q !== currentFilter.value) return
+            optionsEscuela.value = page === 0
+              ? opcionesReales
+              : [...optionsEscuela.value, ...opcionesReales]
             hasMore.value = more
             loading.value = false
+            schoolSearchError.value = false
           },
           (e) => {
+            if (!schoolSearchRequests.isCurrent(requestId) || q !== currentFilter.value) return
             console.error(e)
             API.Utils.Notifica('Ocurrió un error al buscar', 'Intenta más tarde', false, 'top');
             loading.value = false
+            schoolSearchError.value = true
           },
           'text',
-          { page: currentPage.value }
+          { page }
         )
       }
     }
@@ -443,14 +481,26 @@ export default defineComponent({
     const filterEscuela = (val, update) => {
       if (val !== currentFilter.value) {
         currentFilter.value = val
+        const requestId = schoolSearchRequests.next()
         optionsEscuela.value = []
         currentPage.value = 0
         hasMore.value = true
-        loadData(currentFilter.value)
+        schoolSearchError.value = false
+        loading.value = false
+        loadData(currentFilter.value, requestId, 0)
       }
       update(() => {
         return optionsEscuela.value
       })
+    }
+    const retrySchoolSearch = () => {
+      const requestId = schoolSearchRequests.next()
+      currentPage.value = 0
+      hasMore.value = true
+      optionsEscuela.value = []
+      schoolSearchError.value = false
+      loading.value = true
+      loadData(currentFilter.value, requestId, 0)
     }
     const onScrollSelect = ({ to }) => {
       if (optionsEscuela.value.length == 0) {
@@ -461,7 +511,7 @@ export default defineComponent({
           return
         }
         currentPage.value++
-        loadData(currentFilter.value)
+        loadData(currentFilter.value, schoolSearchRequests.next(), currentPage.value)
       }
     }
     function debounce(fn, delay) {
@@ -496,6 +546,7 @@ export default defineComponent({
       Valid = (Valid & (String(user.value.birthdate).length > 6))
       Valid = (Valid & (String(user.value.telNum).length >= 10))
       Valid = (Valid & (user.value.grado !== null))
+      Valid = (Valid & (getSchoolOptionId(user.value.escuela) !== null || schoolChoiceAcknowledged.value || existingSchoolId.value !== null))
       return Valid == 0
     })
     const versionCelular = computed(() => {
@@ -632,6 +683,12 @@ export default defineComponent({
       return ''
     }
     const populateProfileForm = (profile, fallbackEmail = '') => {
+      schoolSearchRequests.invalidate()
+      schoolSearchError.value = false
+      loading.value = false
+      currentFilter.value = ''
+      currentPage.value = 0
+      hasMore.value = true
       user.value.id = profile.id || null
       user.value.name = profileValue(profile, 'name', 'nombre')
       user.value.email = profileValue(profile, 'email') || fallbackEmail
@@ -651,6 +708,8 @@ export default defineComponent({
       const schoolName = school && typeof school === 'object'
         ? (school.nombre || school.label || profileValue(profile, 'nombre_escuela'))
         : profileValue(profile, 'nombre_escuela', 'escuela_nombre')
+      existingSchoolId.value = schoolId || null
+      schoolChoiceAcknowledged.value = false
       if (schoolId) {
         user.value.escuela = { label: schoolName || 'Escuela', value: schoolId }
         optionsEscuela.value = [user.value.escuela]
@@ -911,11 +970,7 @@ export default defineComponent({
       if (user.value.grado !== null) {
         formData.append('id_grado', user.value.grado.value)
       }
-      if (user.value.escuela && typeof user.value.escuela === 'object') {
-        formData.append('id_escuela', user.value.escuela.value)
-      } else if (nuevaEscuelaModel.value.trim()) {
-        formData.append('escuela', nuevaEscuelaModel.value.trim())
-      }
+      appendSchoolId(formData, user.value.escuela, existingSchoolId.value)
       formData.append('firebase', user.value.firebase)
       if (route.params.origen && route.params.origen.length) {
         formData.append('matricula', route.params.origen)
@@ -973,16 +1028,17 @@ export default defineComponent({
       user.value.id = null
       user.value.grado = null
       user.value.escuela = null
+      existingSchoolId.value = null
+      schoolChoiceAcknowledged.value = false
       omriEnrolled.value = false
       omriEnrolledCourseId.value = null
       inscripcionPagada.value = false
-      muestraNuevaEscuela.value = false
+      schoolSearchRequests.invalidate()
       currentPage.value = 0
       currentFilter.value = ''
-      nuevaEscuelaModel.value = ''
       hasMore.value = true
       loading.value = false
-      muestraNuevaEscuela.value = false
+      schoolSearchError.value = false
       optionsEscuela.value = []
       link.value = ''
       cargoId.value = null
@@ -1101,6 +1157,7 @@ export default defineComponent({
     })
     onBeforeUnmount(() => {
       if (paymentWindowInterval) clearInterval(paymentWindowInterval)
+      schoolSearchRequests.invalidate()
     })
     const muestraMenu = () => {
       menuLateral.value = true
@@ -1122,12 +1179,16 @@ export default defineComponent({
       paymentWindowOpen,
       trainingStarted,
       menuLateral,
-      nuevaEscuelaModel,
+      currentFilter,
       loading,
+      schoolSearchError,
+      schoolChoiceAcknowledged,
+      existingSchoolId,
       onScrollSelect,
-      muestraNuevaEscuela,
       optionsEscuela,
-      nuevaEscuela,
+      confirmNoSchool,
+      onSchoolSelected,
+      retrySchoolSearch,
       debouncedScroll,
       filterEscuela,
       registroEmail,
