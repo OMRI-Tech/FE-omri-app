@@ -1,6 +1,6 @@
 # Issue #25 — verificación de intake escolar
 
-Implementación: `bbc19a1` en `codex/school-intake-no-autocreate-on24`, con base provisional `0fe03886720df60e319c1be2bec37aabf8529ade` (#24). Este branch no está listo para publicar: tras integrar la ascendencia de #24 en `main`, aislar solo el commit #25 sobre el nuevo `main` y revalidar el diff.
+Commits propios #25: `bbc19a1` (implementación F1), `0d37391` (evidencia inicial, ampliada después), `0542e1e` (fallback del ID legado hallado por el Verifier). Branch `codex/school-intake-no-autocreate-on24`, con base provisional `0fe03886720df60e319c1be2bec37aabf8529ade` (#24). Este branch no está listo para publicar: tras integrar la ascendencia de #24 en `main`, aislar los commits #25 sobre el nuevo `main` y revalidar el diff.
 
 ## Escenarios y contrato esperado
 
