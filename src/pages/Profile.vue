@@ -142,31 +142,61 @@
                       <q-item-label class="text-h6" header>Datos escolares</q-item-label>
                       <q-item>
                         <q-item-section>
-                          <div v-if="!muestraNuevaEscuela">
-                            <q-select
-                              dense standout
-                              v-model="modelEscuela"
-                              :options="optionsEscuela"
-                              @filter="filterEscuela"
-                              use-input
-                              label="Selecciona una escuela"
-                              hint="Escribe para buscar tu escuela por nombre"
-                              :rules="[val => !!val || 'Campo obligatorio']"
-                            >
-                              <template v-slot:no-option>
+                          <q-select
+                            dense standout
+                            v-model="modelEscuela"
+                            :options="optionsEscuela"
+                            @filter="filterEscuela"
+                            @update:model-value="onSchoolSelected"
+                            use-input
+                            label="Selecciona una escuela"
+                            hint="Escribe para buscar en el catálogo"
+                            :loading="schoolSearchLoading"
+                          >
+                            <template v-slot:no-option>
                                 <q-item>
                                   <q-item-section class="text-italic text-grey">
-                                    <p class="q-mb-none q-mt-none">Presiona la tecla Enter para agregar esta escuela</p>
-                                  </q-item-section>
-                                </q-item>
-                              </template>
-                            </q-select>
-                            <q-btn @click="nuevaEscuela()" color="blue" no-caps flat dense type="button" label="No encuentro mi escuela :c"/>
+                                  <p v-if="schoolSearchError" class="q-mb-none q-mt-none">No pudimos buscar las escuelas.</p>
+                                  <p v-else-if="schoolSearchLoading" class="q-mb-none q-mt-none">Buscando escuelas…</p>
+                                  <p v-else-if="currentSchoolFilter" class="q-mb-none q-mt-none">No encontramos coincidencias. Puedes continuar sin escuela asignada.</p>
+                                  <p v-else class="q-mb-none q-mt-none">Escribe para buscar una escuela del catálogo.</p>
+                                </q-item-section>
+                              </q-item>
+                            </template>
+                          </q-select>
+                          <div v-if="schoolSearchError" class="text-negative text-caption">
+                            No pudimos buscar las escuelas. Puedes reintentar o cambiar la búsqueda.
                           </div>
-                          <div v-else>
-                            <q-input dense standout v-model="nuevaEscuelaModel" placeholder="Secundaria Técnica 114" hint="Nombre *"/>
-                            <q-btn @click="nuevaEscuela()" color="blue" no-caps flat dense type="button" label="Buscar escuela"/>
-                          </div>
+                          <q-btn
+                            v-if="schoolSearchError"
+                            @click.stop="retrySchoolSearch"
+                            color="blue"
+                            no-caps
+                            flat
+                            dense
+                            type="button"
+                            label="Reintentar búsqueda"
+                          />
+                          <q-btn
+                            v-if="existingSchoolId === null && !modelEscuela"
+                            @click="confirmNoSchool"
+                            color="blue"
+                            no-caps
+                            flat
+                            dense
+                            type="button"
+                            label="No encuentro mi escuela"
+                            :disable="schoolChoiceAcknowledged"
+                          />
+                          <p v-if="existingSchoolId === null && !modelEscuela && !schoolChoiceAcknowledged" class="text-caption q-mb-none">
+                            Si no aparece en el catálogo, puedes guardar el perfil sin escuela asignada.
+                          </p>
+                          <p v-else-if="schoolChoiceAcknowledged" class="text-caption q-mb-none">
+                            Tu perfil seguirá sin escuela asignada. Puedes actualizarla después.
+                          </p>
+                          <p v-else-if="existingSchoolId !== null" class="text-caption q-mb-none">
+                            Si no eliges otra opción, se conservará la escuela que ya tienes asignada.
+                          </p>
                         </q-item-section>
                       </q-item>
                       <q-item>
@@ -286,12 +316,14 @@
   </q-page>
 </template>
 <script>
-import { defineComponent, ref, computed } from 'vue'
+import { defineComponent, ref, computed, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import * as API from 'src/store/Api'
 import { LocalStorage } from 'quasar'
 import axios from 'axios'
+const createRequestSequence = require('src/utils/requestSequence')
+const { getSchoolOptionId, resolveSchoolId } = require('src/utils/schoolSelection')
 
 export default defineComponent({
   name: 'Profile',
@@ -304,20 +336,27 @@ export default defineComponent({
     const tab = ref('personal')
     // objeto de usuario
     const user = ref(Usuario)
-    // Model seleccionador de escuela
-    const modelEscuela = ref(Usuario.escuela === null ? null : {value: Usuario.escuela.id, label: Usuario.escuela.nombre})
+    // Mantén el vínculo existente si el perfil no elige otra opción del catálogo.
+    const escuelaActual = Usuario.escuela && typeof Usuario.escuela === 'object' ? Usuario.escuela : null
+    const existingSchoolId = Usuario.id_escuela || (escuelaActual && (escuelaActual.id || escuelaActual.value)) || null
+    const modelEscuela = ref(existingSchoolId === null
+      ? null
+      : {
+          value: existingSchoolId,
+          label: (escuelaActual && (escuelaActual.nombre || escuelaActual.label)) || 'Escuela asignada'
+        })
     // Model seleccionador de municipio
     const modelMunicipio = ref(Usuario.muni === null ? null : {value: Usuario.muni.id, label: Usuario.muni.nombre})
     // Model seleccionador de grado
     const modelGrado = ref(Usuario.grado === null ? null : {value: Usuario.grado.id, label: Usuario.grado.name})
-    // Model para escribir unan ueva escuela
-    const nuevaEscuelaModel = ref('')
     // Controla visibilidad de contraseña en seccion de olímpico
     // const isPwd = ref(true);
-    // Controla visibilidad de agregar nueva escuela
-    const muestraNuevaEscuela = ref(false)
-    // Model de opciones de nueva escuela
-    const optionsEscuela = ref([])
+    const optionsEscuela = ref(modelEscuela.value ? [modelEscuela.value] : [])
+    const schoolSearchLoading = ref(false)
+    const schoolSearchError = ref(false)
+    const schoolChoiceAcknowledged = ref(false)
+    const schoolSearchRequests = createRequestSequence()
+    const currentSchoolFilter = ref('')
     // Model de opciones de municipio
     const optionsMunicipio = ref([])
     // Opciones para grado escolar
@@ -335,28 +374,72 @@ export default defineComponent({
       {value: 11, label: "2do Preparatoria"},
       {value: 12, label: "3ro Preparatoria"}
     ];
-    // Manejador de mostrador de nueva escuela
-    const nuevaEscuela = () => {
-      modelEscuela.value = null
-      nuevaEscuelaModel.value = ''
-      muestraNuevaEscuela.value = !muestraNuevaEscuela.value
+    const confirmNoSchool = () => {
+      if (existingSchoolId !== null || getSchoolOptionId(modelEscuela.value) !== null) return
+      schoolChoiceAcknowledged.value = true
     }
-
-    // Filtro para select2 de escuela
+    const onSchoolSelected = school => {
+      if (getSchoolOptionId(school) !== null) schoolChoiceAcknowledged.value = false
+    }
     const filterEscuela = (val, update) => {
+      const query = String(val || '').trim()
+      if (query === currentSchoolFilter.value && !schoolSearchError.value) {
+        update(() => {
+          return optionsEscuela.value
+        })
+        return
+      }
+      currentSchoolFilter.value = query
+      const requestId = schoolSearchRequests.next()
+      schoolSearchError.value = false
+      schoolSearchLoading.value = false
+      if (!query) {
+        optionsEscuela.value = modelEscuela.value ? [modelEscuela.value] : []
+        update(() => {
+          return optionsEscuela.value
+        })
+        return
+      }
+      schoolSearchLoading.value = true
+      optionsEscuela.value = modelEscuela.value ? [modelEscuela.value] : []
+      update(() => {
+        return optionsEscuela.value
+      })
       API.Request.Select2(
         API.Model('Auth').selectEscuela,
-        val,
+        query,
         opcionesReales => {
+          if (!schoolSearchRequests.isCurrent(requestId) || query !== currentSchoolFilter.value) return
           update(() => {
-            optionsEscuela.value = opcionesReales
+            const selectedSchoolId = getSchoolOptionId(modelEscuela.value)
+            const otherOptions = selectedSchoolId === null
+              ? opcionesReales
+              : opcionesReales.filter(option => String(option.value) !== String(selectedSchoolId))
+            optionsEscuela.value = modelEscuela.value
+              ? [modelEscuela.value, ...otherOptions]
+              : otherOptions
+            schoolSearchLoading.value = false
+            schoolSearchError.value = false
           })
         },
-        () => {
+        error => {
+          if (!schoolSearchRequests.isCurrent(requestId) || query !== currentSchoolFilter.value) return
+          console.error(error)
+          update(() => {
+            optionsEscuela.value = modelEscuela.value ? [modelEscuela.value] : []
+            schoolSearchLoading.value = false
+            schoolSearchError.value = true
+          })
           API.Utils.Notifica('Ocurrió un error al buscar', 'Intenta más tarde', false, 'top');
         }
       )
     }
+    const retrySchoolSearch = () => {
+      filterEscuela(currentSchoolFilter.value, update => update())
+    }
+    onBeforeUnmount(() => {
+      schoolSearchRequests.invalidate()
+    })
 
     // Filtro para select2 de municipio
     const filterMunicipio = (val, update) => {
@@ -387,7 +470,6 @@ export default defineComponent({
     }
     function verificaEscolarFunction() {
       return !(
-        (muestraNuevaEscuela.value ? nuevaEscuelaModel.value.length > 3 : modelEscuela.value !== null) &&
         modelMunicipio.value !== null && modelGrado.value !== null
       )
     }
@@ -428,11 +510,11 @@ export default defineComponent({
       user.value = Usuario
       user.value.id_grado = modelGrado.value.value
       user.value.id_municipio = modelMunicipio.value.value
-      if(modelEscuela.value !== null) {
-        user.value.id_escuela = modelEscuela.value.value
-      }else{
-        user.value.id_escuela = null
-        user.value.escuela = nuevaEscuelaModel.value
+      const selectedSchoolId = resolveSchoolId(modelEscuela.value, existingSchoolId)
+      if (selectedSchoolId !== null && selectedSchoolId !== undefined && selectedSchoolId !== '') {
+        user.value.id_escuela = selectedSchoolId
+      } else {
+        delete user.value.id_escuela
       }
       if (!verificaPersonalFunction() && (user.value.id_status == 1 || user.value.id_status==null)) {
         user.value.id_status = 2
@@ -478,15 +560,20 @@ export default defineComponent({
       modelEscuela,
       modelMunicipio,
       modelGrado,
-      nuevaEscuelaModel,
+      existingSchoolId,
+      schoolSearchLoading,
+      schoolSearchError,
+      schoolChoiceAcknowledged,
+      currentSchoolFilter,
       // isPwd,
-      muestraNuevaEscuela,
       // opciones
       optionsEscuela,
       optionsMunicipio,
       opcionesGrado,
       // manejadores
-      nuevaEscuela,
+      confirmNoSchool,
+      onSchoolSelected,
+      retrySchoolSearch,
       // filtros
       filterEscuela,
       filterMunicipio,
