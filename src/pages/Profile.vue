@@ -437,7 +437,26 @@ export default defineComponent({
       if (!verificaPersonalFunction() && (user.value.id_status == 1 || user.value.id_status==null)) {
         user.value.id_status = 2
       }
-      if (user.value.id_grado <= 6) {
+      const assignedPackage = user.value.posible_paquete && typeof user.value.posible_paquete === 'object'
+        ? user.value.posible_paquete
+        : null
+      const assignedPackageId = Number(assignedPackage && assignedPackage.paquete_id) || null
+      const editionCourseId = Number(user.value.course_id) || assignedPackageId
+      const assignedPackageName = assignedPackage && assignedPackage.paquete
+        ? assignedPackage.paquete.nombre_paquete
+        : ''
+      const isOmriEdition = Boolean(
+        ((user.value.omri_edition || user.value.omri_enrolled) && editionCourseId) ||
+        String(assignedPackageName || '').trim().toLocaleUpperCase() === 'XX OMRI'
+      )
+      if (isOmriEdition) {
+        if (editionCourseId) {
+          user.value.paquete_id = editionCourseId
+          if (assignedPackage && assignedPackageId === editionCourseId && assignedPackage.id) {
+            user.value.paquetealumno_id = assignedPackage.id
+          }
+        }
+      } else if (user.value.id_grado <= 6) {
         user.value.paquetealumno_id = user.value.posible_paquete.id
         user.value.paquete_id = 1
       } else if (user.value.id_grado <= 9) {

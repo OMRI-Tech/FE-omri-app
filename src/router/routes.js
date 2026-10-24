@@ -1,9 +1,9 @@
 const routes = [
   {
-    path: '/register',
-    component: () => import('pages/Auth/Register.vue'),
+    path: '/register/:origen?',
+    component: () => import('pages/Auth/RegisterLogin.vue'),
     name: 'Register',
-    meta: { type: 'auth' }
+    meta: { type: 'auth', allowAuthenticated: true }
   },
   {
     path: '/login',
@@ -19,7 +19,7 @@ const routes = [
         path: 'menu',
         component: () => import('pages/Menu.vue'),
         name: 'Home',
-        meta: { auth: true }
+        meta: { auth: true, training: true }
       },
       {
         path: 'profile',
@@ -31,13 +31,14 @@ const routes = [
         path: 'minijuegos',
         component: () => import('pages/MiniJuegos.vue'),
         name: 'MiniGames',
-        meta: { auth: true }
+        meta: { auth: true, training: true, legacyContent: true }
       }
     ]
   },
   {
     path: '/lessons',
     component: () => import('layouts/LessonLayout.vue'),
+    meta: { training: true, legacyContent: true },
     children: [
       {
         path: '',
@@ -56,6 +57,7 @@ const routes = [
   {
     path: '/quiz',
     component: () => import('layouts/QuizLayout.vue'),
+    meta: { training: true, legacyContent: true },
     children: [
       { path: '', component: () => import('pages/Quiz.vue'), name: 'Quiz', meta: { auth: true } }
     ]

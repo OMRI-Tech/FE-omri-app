@@ -2,19 +2,19 @@
   <q-layout>
     <q-header class="header">
       <q-toolbar class="justify-center">
-        <div class="q-px-md ic-trophy">
+        <div v-if="vidas !== null" class="q-px-md ic-trophy">
           <q-icon size="1.5rem">
             <q-img src="~assets/icons/trophy.svg" />
           </q-icon>
           0
         </div>
-        <div class="q-px-md ic-triangle">
+        <div v-if="vidas !== null" class="q-px-md ic-triangle">
           <q-icon size="1.5rem">
             <q-img src="~assets/icons/triangle.svg" />
           </q-icon>
           --
         </div>
-        <div class="q-px-md ic-heart">
+        <div v-if="vidas !== null" class="q-px-md ic-heart">
           <q-icon size="1.5rem">
             <q-img src="~assets/icons/heart.svg" />
           </q-icon>
@@ -63,7 +63,15 @@ export default defineComponent({
   setup () {
     const store = useStore()
     const router = useRouter()
-    const vidas = ref(0)
+    const user = store.getters['auth/user']
+    const packageName = user && user.posible_paquete && user.posible_paquete.paquete
+      ? user.posible_paquete.paquete.nombre_paquete
+      : ''
+    const isOmriEdition = Boolean(
+      ((user && (user.omri_edition || user.omri_enrolled)) && Number(user.course_id) > 0) ||
+      String(packageName || '').trim().toLocaleUpperCase() === 'XX OMRI'
+    )
+    const vidas = ref(isOmriEdition ? null : 0)
     const actualTitle = ref()
     /// dialog bloqueador
     const dialogBloqueo = ref(false)
@@ -74,6 +82,7 @@ export default defineComponent({
       console.log('active title con esto: ', title)
     }
     const actualizaVidas = () => {
+      if (isOmriEdition) return Promise.resolve()
       store.dispatch('auth/actualizaVidas').then(() => {
         vidas.value = Store().getters['auth/vidas']
         if(store.getters['auth/vidas'] == 0){
@@ -82,7 +91,7 @@ export default defineComponent({
       })
     }
     onBeforeMount(() => {
-      actualizaVidas()
+      if (!isOmriEdition) actualizaVidas()
     })
     const logout = () => {
       store.dispatch('auth/logoutFirebase')
@@ -96,6 +105,12 @@ export default defineComponent({
     const irJuegos = () => {
       router.push({name:'MiniGames'})
     }
+    const footerItems = [
+      { title: 'Perfil', activeImage: require('assets/icons/out_profile.svg'), regularImage: '', click: verPerfil},
+      { title: 'Menú', activeImage: require('assets/icons/out_ranking.svg'), regularImage: '', click: verMenu},
+      { title: 'Games', activeImage: null, icon: 'smart_toy', regularImage: '', click: irJuegos},
+      { title: 'Salir', activeImage: null, icon: "logout", regularImage: '', click: logout }
+    ]
     return {
       store,
       vidas,
@@ -105,12 +120,7 @@ export default defineComponent({
       actualTitle,
       dialogBloqueo,
       claseBloqueadora,
-      itemsFooter: [
-        { title: 'Perfil', activeImage: require('assets/icons/out_profile.svg'), regularImage: '', click: verPerfil},
-        { title: 'Menú', activeImage: require('assets/icons/out_ranking.svg'), regularImage: '', click: verMenu},
-        { title: 'Games', activeImage: null, icon: 'smart_toy', regularImage: '', click: irJuegos},
-        { title: 'Salir', activeImage: null, icon: "logout", regularImage: '', click: logout }
-      ]
+      itemsFooter: isOmriEdition ? footerItems.filter(item => item.title !== 'Games') : footerItems
     }
   },
   methods: {

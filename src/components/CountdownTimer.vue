@@ -3,7 +3,7 @@
     <div class="countdown-container">
       <p class="countdown-message">{{ countdownMessage }}</p>
       <div class="countdown">
-        <div class="countdown-grid">  
+        <div class="countdown-grid">
           <!-- Días -->
           <div class="countdown-box">
             <span class="countdown-number" :class="daysTensAnimationClass">{{ Math.floor(days / 10) }}</span>
@@ -29,10 +29,10 @@
             <span class="countdown-label">minutos</span>
           </div>
           <!-- Segundos -->
-          <div class="countdown-box">
+          <div class="countdown-box seconds">
             <span class="countdown-number" :class="secondsTensAnimationClass">{{ Math.floor(seconds / 10) }}</span>
           </div>
-          <div class="countdown-box" >
+          <div class="countdown-box seconds" >
             <span class="countdown-number" :class="secondsAnimationClass">{{ seconds % 10 }}</span>
             <span class="countdown-label">segundos</span>
           </div>
@@ -43,6 +43,7 @@
 </template>
 
 <script>
+import { useQuasar } from 'quasar'
 import { ref, defineComponent, onMounted, watch } from 'vue'
 import axios from "axios"
 import 'src/css/countdown.css';
@@ -60,6 +61,7 @@ export default defineComponent({
     }
   },
   setup (props) {
+    const $q = useQuasar()
     const isBlocked = ref(false)
     const days = ref(0)
     const hours = ref(0)
@@ -77,6 +79,7 @@ export default defineComponent({
     const prevHours = ref(0)
     const prevMinutes = ref(0)
     const prevSeconds = ref(0)
+    let intervalDuration = $q.screen.gt.sm ? 1000 : 60000
     let intervalInstance
     let serverTimeOffset = 0  // Diferencia entre el tiempo del servidor y el tiempo local al inicio.
 
@@ -98,7 +101,7 @@ export default defineComponent({
       intervalInstance = setInterval(() => {
         const adjustedCurrentTime = new Date().getTime() + serverTimeOffset
         calculateCountdown(adjustedCurrentTime)
-      }, 1000)
+      }, intervalDuration)
     }
 
     const calculateCountdown = (currentTime) => {

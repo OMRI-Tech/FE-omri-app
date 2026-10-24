@@ -25,9 +25,7 @@ export default async function  (loadingMessage, url, params, response, error) {
     })
     .catch(e => {
       Loading.hide()
-      console.error('-----------');
-      console.log(e)
-      if (typeof e === 'function') {
+      if (typeof error === 'function') {
         error(e)
       }
     })

@@ -58,8 +58,13 @@
 }
 
 .countdown-message {
-  margin-bottom: 25px; 
+  margin-bottom: 25px;
   text-align: center;
   color: white;
   font-size: 24px;
+}
+@media only screen and (max-width: 600px) {
+  .countdown-box.seconds {
+    display: none;
+  }
 }
