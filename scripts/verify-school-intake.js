@@ -42,6 +42,31 @@ assert.deepStrictEqual(sharedUpdate.entries, [
   ['id_escuela', 42]
 ])
 
+const profileSchoolFallback = createFormDataRecorder()
+appendUserUpdateFields(profileSchoolFallback, {
+  id: 10,
+  id_escuela: null,
+  escuela: { id: 17, nombre: 'Escuela asignada' }
+})
+assert.deepStrictEqual(profileSchoolFallback.entries, [
+  ['id', 10],
+  ['id_escuela', 17]
+])
+
+const explicitSchoolIdWins = createFormDataRecorder()
+appendUserUpdateFields(explicitSchoolIdWins, {
+  id_escuela: 21,
+  escuela: { value: 17, label: 'Otra escuela' }
+})
+assert.deepStrictEqual(explicitSchoolIdWins.entries, [['id_escuela', 21]])
+
+const legacyTextOnlyUpdate = createFormDataRecorder()
+appendUserUpdateFields(legacyTextOnlyUpdate, {
+  name: 'Ana',
+  escuela: 'Escuela escrita por el alumno'
+})
+assert.deepStrictEqual(legacyTextOnlyUpdate.entries, [['name', 'Ana']])
+
 const requests = createRequestSequence()
 const firstSearch = requests.next()
 const latestSearch = requests.next()
