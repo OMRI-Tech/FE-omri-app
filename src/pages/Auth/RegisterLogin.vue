@@ -1,31 +1,45 @@
 <template>
-  <div class="fullscreen">
-    <countdown-timer :targetDateTime="'September 11, 2023 00:00:00'" :countdownMessage="'Tiempo restante para la apertura de la convocatoria:'"></countdown-timer>
+  <q-layout class="fullscreen registro">
+    <countdown-timer :targetDateTime="'September 10, 2023 00:00:00'" :countdownMessage="'Tiempo restante para la apertura de la convocatoria:'"></countdown-timer>
     <div class="items-center back">
-      <img :src="images.cloudUp" class="cloud-up" />
-      <img :src="images.cloudDown" class="cloud-down" />
-      <div class="top-img-section items-center row justify-center">
-        <div class="col row column items-center">
-          <div class="col "></div>
-          <img :src="images.card" class="letter col-md-auto"/>
-          <div class="col "></div>
+      <picture>
+        <source :srcset="images.cloudUpw" type="image/webp" />
+        <img :src="images.cloudUp" class="cloud-up animate__animated animate__fadeInUp animate__slower" />
+      </picture>
+      <picture>
+        <source :srcset="images.cloudDownw" type="image/webp" />
+        <img :src="images.cloudDown" class="cloud-down animate__animated animate__fadeInDown animate__slower" />
+      </picture>
+      <div class="">
+        <div class="hamburguesa">
+          <q-btn
+            round
+            icon="menu"
+            @click="muestraMenu"
+            color="purple"
+            size="md"
+          />
         </div>
-        <div class="col row column items-center">
-          <div class="col "></div>
-          <img src="~assets/logos/omri.png" class="col-md-auto ">
-          <div class="col "></div>
-        </div>
-        <div class="col">
+        <div class="text-center">
+          <picture>
+            <source :srcset="images.omriw" type="image/webp" />
+            <img :src="images.omri" alt="logo omri" class="logo col-md-auto animate__animated animate__tada animate__delay-4s" />
+          </picture>
         </div>
       </div>
-      <div class="bottom-img-section">
-        <img :src="images.bell" class="bell" />
-        <img :src="images.phone" class="phone" />
+      <div class="bottom-img-section flex items-end">
+        <p class="title-account login col q-mt-lg">
+          Al registrarte, estás aceptando <br/>
+          <a href="https://www.omri.org.mx/aviso-de-privacidad" target="_blank">la política de privacidad</a>*
+        </p>
       </div>
       <div class="fixed-center card">
         <div rounded flat class="text-center">
           <div class="q-ma-xs">
-            <p class="title-account q-mt-md">Registro para la XVI OMRI</p>
+            <p v-if="step === 1" class="title-account q-mb-none q-mt-md animate__delay-1s animate__animated animate__rubberBand">
+              Registro para la
+              {{ versionCelular ? 'XVII OMRI' : 'XVII Olimpiada Morelense de Informática' }}
+            </p>
             <q-stepper
               v-model="step"
               vertical
@@ -50,37 +64,18 @@
 
                   Si has participado en anteriores OMRI, escribe el correo con el que te registraste
                 </q-banner>
-                <q-btn rounded flat class="button hidden" @click="registroFacebook">
-                  <p class="text-button">Registrate con</p>
-                  <q-icon class="q-ml-sm" size="sm">
-                    <img :src="images.logoFacebook" />
-                  </q-icon>
-                </q-btn>
-                <q-btn rounded flat class="button q-mb-md hidden">
-                  <p class="text-button">Registrate con</p>
-                  <q-icon class="q-ml-sm" size="sm">
-                    <img :src="images.logoGoogle" />
-                  </q-icon>
-                </q-btn>
                 <p class="title-account or">- REGISTRATE CON TU CORREO  -</p>
                 <q-form class="form-register" align="center" @submit.prevent="registroEmail">
+                  <q-badge color="green" label="Cada participante debe registrarse con su correo propio"></q-badge>
                   <q-input
                     dense v-model="user.email"
                     class="q-my-sm text-button"
                     label="Correo electrónico*" color="teal"
                     :rules="[val => val.trim() !== '' || 'Campo no válido']"
                   />
-                  <div class="row items-center">
-                    <div class="col column items-center">
-                      <p class="tittle-account login col q-ma-sm">
-                        Al registrarte, estás aceptando la
-                        <a href="https://www.omri.org.mx/aviso-de-privacidad" target="_blank">política de privacidad</a>*
-                      </p>
-                    </div>
-                  </div>
                   <q-btn
                     rounded
-                    class="q-ma-md full-width button-submit text-button"
+                    class="q-ma-md full-width button-submit text-button animate__animated animate__pulse animate__infinite"
                     type="submit"
                     label="Crear cuenta"
                     :disabled = verification
@@ -125,12 +120,20 @@
                   </div>
                   <q-input
                     dense v-model="user.email"
-                    class="q-my-sm text-button"
+                    class="q-my-sm text-button hidden"
                     label="Correo electrónico*"
                     color="teal"
                     :rules="[val => val.trim() !== '' || 'Campo no válido']"
                     readonly
                   />
+                  <q-select
+                    dense
+                    v-model="user.grado"
+                    :options="opcionesGrado"
+                    hint="Grado escolar"
+                    :rules="[val => val || 'Campo Obligatorio']"
+                  >
+                  </q-select>
                   <q-input
                     dense v-model="user.password"
                     class="q-my-sm text-button hidden"
@@ -149,7 +152,7 @@
                     rounded
                     class="q-ma-md full-width button-submit text-button"
                     type="submit"
-                    label="Crear cuenta"
+                    label="Finalizar registro"
                     :disabled = verificationFull
                   />
                   <q-btn
@@ -168,20 +171,33 @@
                 :done="step > 3"
               >
                 <q-banner class="bg-green text-white" v-if="!inscripcionPagada">
-                  <h4>Paga tu inscripción con tarjeta, efectivo o transferencia</h4>
-                  <p>Usa el siguiente link para realizar el pago de tu inscripción.</p>
-                  <p>Te llegará por correo electrónico tambien la liga de pago</p>
-                  <p>Puedes regresar al registro en cualquier momento usando tu correo electrónico, la fecha límite de pago es el <strong>11 de noviembre de 2022</strong></p>
-                  <a :href="link" target="_blank">{{link}}</a>
+                  <h5 class="q-my-sm">Opciones de pago: tarjeta, efectivo, transferencia</h5>
+                  <p>Haz clic abajo para pagar.</p>
+                  <p>Recibirás el link de pago por correo.</p>
+                  <p>Usa tu correo para retomar el registro. Paga antes del <strong>20 de octubre de 2023</strong></p>
+
+                  <q-btn
+                    :ripple="{ color: 'yellow' }"
+                    style="background: #ed358a"
+                    label="Pagar ahora"
+                    size="xl"
+                    :href="link"
+                    target="_blank"
+                    class="animate__animated animate__pulse animate__infinite animate__slower"
+                    no-caps
+                  />
+                  <br/>
+                  <q-btn class="bg-blue q-mt-md" v-if="!clickReciente" rounded type="button" @click="creaLink">
+                    Generar nuevo link de pago
+                  </q-btn>
                 </q-banner>
                 <q-banner class="bg-green text-white" v-else>
-                  <h4>Tu pago ha sido recibido</h4>
-                  <p>Recibirás el 29 de octubre una contraseña para acceder a nuestra APP</p>
+                  <h4>Pago confirmado</h4>
+                  <p>Recibirás el 14 de octubre una contraseña para acceder a nuestra APP</p>
                 </q-banner>
-                
                 <q-btn
                   rounded
-                  class="q-ma-md full-width button-submit text-button bg-red"
+                  class="q-ma-sm full-width button-submit text-button bg-red"
                   type="button"
                   label="Cerrar"
                   @click="reiniciar"
@@ -189,41 +205,54 @@
               </q-step>
 
             </q-stepper>
-            <p>El curso inicia el 29 de octubre.</p>
-            <p>
+            <p class="q-mb-sm" v-if="step !== 2">El curso inicia el 14 de octubre de 2023.</p>
+            <p class="q-mb-sm" v-if="step !== 2">
               Para conocer más sobre el concurso, visita <a href="https://www.omri.org.mx/#concurso">nuestro sitio web omri.org.mx</a>
             </p>
           </div>
         </div>
       </div>
     </div>
-  </div>
+    <drawer-menu
+      :model-value="menuLateral"
+      @update:modelValue="menuLateral = $event"
+    ></drawer-menu>
+  </q-layout>
 </template>
 
 <script>
-import { ref, defineComponent, reactive, computed, onBeforeMount, onMounted } from 'vue'
-import { auth, db, provider } from "boot/firebase";
-import { createUserWithEmailAndPassword, getRedirectResult, signOut, getAuth } from "firebase/auth";
+import { ref, defineComponent, reactive, computed, onBeforeMount, onMounted, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useRoute } from 'vue-router'
-import { Loading, QSpinnerBall, Notify } from 'quasar'
+import { Loading, QSpinnerBall, Notify, useQuasar } from 'quasar'
 import * as API from 'src/store/Api'
 import CountdownTimer from "components/CountdownTimer.vue"
+import DrawerMenu from "components/DrawerMenu.vue"
 import 'animate.css'
+// Importando imagenes
+import cloudUp from "assets/img/cloud-up.png";
+import cloudDown from "assets/img/cloud-down.png";
+import cloudUpw from "assets/img/webp/cloud-up.png.webp";
+import cloudDownw from "assets/img/webp/cloud-down.png.webp";
+import omri from "assets/logos/omri.png";
+import omriw from "assets/logos/webp/omri.png.webp";
 
 export default defineComponent({
   components: {
+    DrawerMenu,
     CountdownTimer
   },
   setup () {
+    const $q = useQuasar()
     const images = {
       logoFacebook: require('assets/logos/facebook.png'),
       logoGoogle: require('assets/logos/google.png'),
-      card: require('assets/img/card.png'),
-      bell: require('assets/img/bell.png'),
-      phone: require('assets/img/phone.png'),
-      cloudUp: require('assets/img/cloud-up.png'),
-      cloudDown: require('assets/img/cloud-down.png')
+      cloudUp,
+      cloudDown,
+      cloudUpw,
+      cloudDownw,
+      omri,
+      omriw,
     }
     const user = ref({
       name: '',
@@ -236,19 +265,37 @@ export default defineComponent({
       facebook: false,
       firebase: '',
       cargos: null,
-      id: 1
+      id: 1,
+      grado: null
     })
+    // Opciones para grado escolar
+    const opcionesGrado = [
+      {value: 1, label: "1ro Primaria"},
+      {value: 2, label: "2do Primaria"},
+      {value: 3, label: "3ro Primaria"},
+      {value: 4, label: "4to Primaria"},
+      {value: 5, label: "5to Primaria"},
+      {value: 6, label: "6to Primaria"},
+      {value: 7, label: "1ro Secundaria"},
+      {value: 8, label: "2do Secundaria"},
+      {value: 9, label: "3ro Secundaria"},
+      {value: 10, label: "1ro Preparatoria"},
+      {value: 11, label: "2do Preparatoria"},
+      {value: 12, label: "3ro Preparatoria"}
+    ];
+    const clickReciente = ref(false)
     const isPwd = ref(true)
-    const useFacebook = ref(false)
+    //const useFacebook = ref(false)
     const inscripcionPagada = ref(false)
     const step = ref(1)
     const link = ref("")
+    const menuLateral = ref(false)
     const store = useStore()
     const route = useRoute()
     const verification = computed(() => {
-      var Valid = (user.value.email.includes('@') & user.value.email.includes('.'))
-      return Valid == 0
-    })
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      return !emailRegex.test(user.value.email);
+    });
     const verificationFull = computed(() => {
       var Valid = (user.value.name !== '')
       Valid = (Valid & user.value.lname.trim() !== '')
@@ -256,11 +303,12 @@ export default defineComponent({
       Valid = (Valid & user.value.password.trim() !== '')
       Valid = (Valid & (String(user.value.birthdate).length > 6))
       Valid = (Valid & (String(user.value.telNum).length >= 10))
+      Valid = (Valid & (user.value.grado !== null))
       return Valid == 0
     })
-    const registroFacebook = () => {
-      store.dispatch('auth/socialRedirect', { facebook: true })
-    }
+    const versionCelular = computed(() => {
+      return $q.screen.lt.sm
+    })
     const actualizacionDatos = async () => {
       Loading.show({ message: 'Cargando...', spinner: QSpinnerBall })
       const formData = new FormData()
@@ -273,7 +321,10 @@ export default defineComponent({
       formData.append('password', user.value.password)
       formData.append('id_status', 1)
       formData.append('id_nivel', 1)
-      formData.append('paquete_id', 8)
+      if (user.value.grado !== null) {
+        formData.append('id_grado', user.value.grado.value)
+      }
+      formData.append('paquete_id', 9)
       formData.append('activar', 1)
       formData.append('firebase', user.value.firebase)
       if (route.params.origen && route.params.origen.length) {
@@ -292,7 +343,7 @@ export default defineComponent({
                 API.Model('Auth').agregarInscripcion,
                 {
                   user_id: user.value.id,
-                  fecha: '2022-11-01',
+                  fecha: '2023-10-20',
                   tipo: 'inscripcion'
                 },
                 res2 => {
@@ -383,7 +434,7 @@ export default defineComponent({
     }
     const reiniciar = () => {
       step.value = 1
-      signOut(auth)
+      clickReciente.value = false
       user.value.name = ''
       user.value.email = ''
       user.value.password = ''
@@ -395,27 +446,12 @@ export default defineComponent({
       user.value.firebase = ''
       user.value.id = 1
       user.value.cargos = null
+      user.value.grado = null
       inscripcionPagada.value = false
       link.value = ''
     }
     const registroEmail = async () => {
       Loading.show({ message: 'Guardando...', spinner: QSpinnerBall })
-      console.log('se determina si entra o no: ', user.value.firebase.length === 0)
-      if(user.value.firebase.length === 0){
-        try{
-          await createUserWithEmailAndPassword(
-            auth,
-            user.value.email,
-            user.value.email
-          ).then((userCredential) => {
-            user.value.firebase = userCredential.user.uid
-          })
-        }
-        catch(e){
-          console.error('nada que hacerle :c')
-          console.log(e)
-        }
-      }
       await API.Request.Post(
         'Guardando...',
         API.Model('Auth').getUser,
@@ -423,7 +459,7 @@ export default defineComponent({
         response => {
           user.value.password = user.value.email
           if (response.status === 1) {
-            console.log('existe, se rellena')
+            console.log('existe, se rellena', response)
             /// existe, se rellena
             user.value.id = response.data
             user.value.name = response.nombre || ''
@@ -432,6 +468,7 @@ export default defineComponent({
             user.value.telNum = response.telefono || ''
             user.value.birthdate = response.birth || null
             user.value.cargos = response.cargos
+            user.value.grado = opcionesGrado[response.grado-1]
           } else { // no existe, se crea
             console.log('no existe, se crea')
             const formData = new FormData()
@@ -440,7 +477,6 @@ export default defineComponent({
             formData.append('password', user.value.password)
             formData.append('id_status', 1)
             formData.append('id_nivel', 1)
-            formData.append('firebase', user.value.firebase)
             if (route.params.origen && route.params.origen.length) {
               formData.append('matricula', route.params.origen)
             }
@@ -470,49 +506,68 @@ export default defineComponent({
         }
       )
     }
+    const creaLink = async () => {
+      API.Request.Get(
+        'Creando liga de pago...',
+        API.Model('Auth').payLink,
+        {
+          cargo_id: user.value.cargos.id,
+          ignora: 'true'
+        },
+        res3 => {
+          clickReciente.value = true
+          step.value = 3
+          console.log('aqui esta el cargo para pagar', res3)
+          link.value = res3.data
+          Notify.create({
+            message: '¡Se generó otro link de pago!',
+            caption: 'Se envió a tu WhatsApp también',
+            avatar: require('assets/img/entrenator.png'),
+            color: 'positive',
+            position: 'center'
+            // classes: 'horizontal-center'
+          })
+        }
+      )
+    }
+    watch(user.value, newVal => {
+      const isConTypo = newVal.email.endsWith('.con');
+      if (isConTypo && !newVal.email.endsWith('.mx.con')) {
+        // Corrige automáticamente el error .con a .com
+        user.value.email = newVal.email.replace('.con', '.com');
+      }
+    });
     onBeforeMount(() => {
       Loading.show({ message: 'Cargando...', spinner: QSpinnerBall })
-      /*getRedirectResult(auth).then((result) => {
-        // This is the signed-in user
-        console.log('ok salimos de aca getredirect', result)
-        if(result !== null){
-          user.value.firebase = result.user.uid
-          if(user.value.name.length == 0) {
-            user.value.name = result.user.displayName
-          }
-          user.value.email = result.user.email
-          user.value.avatar = result.user.photoURL
-          useFacebook.value = true
-          console.log('aquiiiii', result.user)
-          registroEmail()
-        }
-      }).catch((e) => {
-        console.log('¿o')
-        console.error(e)
-        console.log(e.code, e.email)
-      })*/
     });
     onMounted(() => {
+      menuLateral.value = false
       setTimeout(() => {
         Loading.hide()
       }, 500)
     })
-
+    const muestraMenu = () => {
+      menuLateral.value = true
+    }
     return {
       user,
       images,
+      opcionesGrado,
+      clickReciente,
       isPwd,
       verification,
       verificationFull,
-      registroFacebook,
+      versionCelular,
+      menuLateral,
       registroEmail,
       reiniciar,
       actualizacionDatos,
+      creaLink,
       inscripcionPagada,
       link,
-      useFacebook,
       step,
-      store
+      store,
+      muestraMenu
     }
   }
 })
@@ -520,4 +575,5 @@ export default defineComponent({
 
 <style lang="sass" scoped>
   @import url(src/css/auth.sass)
+  @import url(src/css/registro.sass)
 </style>
